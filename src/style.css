@@ -1,0 +1,75 @@
+:root {
+  /* Puesta de sol californiana - tema claro */
+  --color-bg: #fff8f0;
+  --color-surface: #fffbf7;
+  --color-surface-alt: #f5e6d3;
+  --color-text: #2c1810;
+  --color-text-muted: #7a5c4a;
+  --color-border: #e8d4c0;
+  --color-primary: #e85d2f;
+  --color-primary-contrast: #ffffff;
+  --color-low: #c17e2e;
+  --color-medium: #d97a3f;
+  --color-high: #a84e24;
+
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  /* Solarized Dark - tema medianoche */
+  --color-bg: #002b36;
+  --color-surface: #073642;
+  --color-surface-alt: #586e75;
+  --color-text: #93a1a1;
+  --color-text-muted: #839496;
+  --color-border: #073642;
+  --color-primary: #dc322f;
+  --color-primary-contrast: #fdf6e3;
+  --color-low: #859900;
+  --color-medium: #b58900;
+  --color-high: #d30102;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+select,
+button {
+  font-size: 1rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

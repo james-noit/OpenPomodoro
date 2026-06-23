@@ -1,0 +1,47 @@
+{
+  "app": {
+    "name": "OpenPomodoro"
+  },
+  "menu": {
+    "open": "Open menu",
+    "file": "File",
+    "exportTodo": "Export To-Do",
+    "importTodo": "Import To-Do",
+    "reset": "Reset",
+    "resetConfirm": "This will erase your to-do list and reset the pomodoro clock. Continue?"
+  },
+  "theme": {
+    "toggleToLight": "Switch to light theme",
+    "toggleToDark": "Switch to dark theme"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "es": "Spanish"
+  },
+  "clock": {
+    "focus": "Focus",
+    "break": "Break",
+    "start": "Start",
+    "pause": "Pause",
+    "reset": "Reset",
+    "minutes": "minutes"
+  },
+  "todo": {
+    "title": "To-Do List",
+    "addPlaceholder": "What needs to be done?",
+    "add": "Add",
+    "importance": "Importance",
+    "urgency": "Urgency",
+    "tags": "Tags",
+    "tagsPlaceholder": "Comma-separated tags",
+    "filterAll": "All",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "empty": "No tasks yet.",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "delete": "Delete"
+  }
+}
