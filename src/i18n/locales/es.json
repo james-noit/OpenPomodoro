@@ -1,0 +1,47 @@
+{
+  "app": {
+    "name": "OpenPomodoro"
+  },
+  "menu": {
+    "open": "Abrir menú",
+    "file": "Archivo",
+    "exportTodo": "Exportar tareas",
+    "importTodo": "Importar tareas",
+    "reset": "Reiniciar",
+    "resetConfirm": "Esto borrará tu lista de tareas y reiniciará el reloj pomodoro. ¿Continuar?"
+  },
+  "theme": {
+    "toggleToLight": "Cambiar a tema claro",
+    "toggleToDark": "Cambiar a tema oscuro"
+  },
+  "language": {
+    "label": "Idioma",
+    "en": "Inglés",
+    "es": "Español"
+  },
+  "clock": {
+    "focus": "Concentración",
+    "break": "Descanso",
+    "start": "Iniciar",
+    "pause": "Pausar",
+    "reset": "Reiniciar",
+    "minutes": "minutos"
+  },
+  "todo": {
+    "title": "Lista de tareas",
+    "addPlaceholder": "¿Qué hay que hacer?",
+    "add": "Añadir",
+    "importance": "Importancia",
+    "urgency": "Urgencia",
+    "tags": "Etiquetas",
+    "tagsPlaceholder": "Etiquetas separadas por comas",
+    "filterAll": "Todas",
+    "low": "Baja",
+    "medium": "Media",
+    "high": "Alta",
+    "empty": "Aún no hay tareas.",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
+    "delete": "Eliminar"
+  }
+}
