@@ -20,5 +20,5 @@ jobs:
           password: ${{ secrets.SFTP_PASSWORD_POMODORO }}
           port: 22
           local_path: './dist/'    # Archivos generados por el build
-          remote_path: '/public/proyecto/'  # Destino en IONOS
+          remote_path: '/public/openPomodoro/'  # Destino en IONOS
           sftp_only: true
