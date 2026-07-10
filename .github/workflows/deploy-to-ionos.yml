@@ -1,0 +1,23 @@
+name: Build and Deploy to IONOS
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install and Build
+        run: |
+          npm install
+          npm run build
+      - name: SFTP Deploy
+        uses: appleboy/sftp-action
+        with:
+          host: ${{ secrets.SFTP_SERVER }}
+          username: ${{ secrets.SFTP_USER_POMODORO }}
+          password: ${{ secrets.SFTP_PASSWORD_POMODORO }}
+          protocol: sftp
+          port: 22
+          source: ./dist/    # Archivos generados por el build
+          target: /public/proyecto/  # Destino en IONOS
