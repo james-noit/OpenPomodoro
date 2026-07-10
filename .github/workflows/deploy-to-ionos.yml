@@ -12,7 +12,7 @@ jobs:
           npm install
           npm run build
       - name: SFTP Deploy
-        uses: appleboy/sftp-action
+        uses: appleboy/sftp-action@master
         with:
           host: ${{ secrets.SFTP_SERVER }}
           username: ${{ secrets.SFTP_USER_POMODORO }}
