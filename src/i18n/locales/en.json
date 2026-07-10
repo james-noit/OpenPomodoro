@@ -25,7 +25,9 @@
     "start": "Start",
     "pause": "Pause",
     "reset": "Reset",
-    "minutes": "minutes"
+    "minutes": "minutes",
+    "bellOn": "Enable bell sound",
+    "bellOff": "Disable bell sound"
   },
   "todo": {
     "title": "To-Do List",

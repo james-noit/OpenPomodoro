@@ -25,7 +25,9 @@
     "start": "Iniciar",
     "pause": "Pausar",
     "reset": "Reiniciar",
-    "minutes": "minutos"
+    "minutes": "minutos",
+    "bellOn": "Activar sonido de campana",
+    "bellOff": "Desactivar sonido de campana"
   },
   "todo": {
     "title": "Lista de tareas",

@@ -11,6 +11,7 @@ type Mode = 'focus' | 'break'
 const mode = ref<Mode>('focus')
 const running = ref(false)
 let intervalId: ReturnType<typeof setInterval> | undefined
+let hasTicked = false
 
 const durationMinutes = computed(() =>
   mode.value === 'focus' ? settings.focusMinutes : settings.breakMinutes,
@@ -36,8 +37,38 @@ const formattedTime = computed(() => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 })
 
+let audioCtx: AudioContext | null = null
+
+function playTone() {
+
+  for (let i = 0; i < 2; i++) {
+    if (!audioCtx) audioCtx = new AudioContext()
+    const ctx = audioCtx
+    const oscillator = ctx.createOscillator()
+    const gainNode = ctx.createGain()
+
+    oscillator.type = 'sine'
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime)
+    oscillator.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.6)
+
+    gainNode.gain.setValueAtTime(0.3, ctx.currentTime)
+    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6)
+
+    oscillator.connect(gainNode)
+    gainNode.connect(ctx.destination)
+
+    oscillator.start(ctx.currentTime)
+    oscillator.stop(ctx.currentTime + 0.6)
+  }
+
+}
+
 function tick() {
   if (remainingSeconds.value <= 0) {
+    if (!hasTicked) {
+      hasTicked = true
+      if (settings.bellSound) playTone()
+    }
     pause()
     return
   }
@@ -57,11 +88,13 @@ function pause() {
 }
 
 function reset() {
+  hasTicked = false
   pause()
   remainingSeconds.value = totalSeconds.value
 }
 
 function setMode(next: Mode) {
+  hasTicked = false
   pause()
   mode.value = next
   remainingSeconds.value = totalSeconds.value
@@ -86,6 +119,15 @@ onUnmounted(() => {
       </button>
       <button type="button" :class="{ active: mode === 'break' }" @click="setMode('break')">
         {{ t('clock.break') }}
+      </button>
+      <button
+        type="button"
+        class="clock__bell"
+        :class="{ 'clock__bell--muted': !settings.bellSound }"
+        :aria-label="settings.bellSound ? t('clock.bellOff') : t('clock.bellOn')"
+        @click="settings.setBellSound(!settings.bellSound)"
+      >
+        {{ settings.bellSound ? '🔔' : '🔕' }}
       </button>
     </div>
 
@@ -159,6 +201,52 @@ onUnmounted(() => {
   background-color: var(--color-primary);
   color: var(--color-primary-contrast);
   border-color: var(--color-primary);
+}
+
+.clock__bell {
+  padding: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  outline: 2px solid #555;
+  color: var(--color-text);
+  background: linear-gradient(135deg, #f5e6d3, #e8d4c0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.clock__bell:hover {
+  filter: brightness(0.9);
+}
+
+.clock__bell:hover {
+  filter: brightness(0.9);
+}
+
+.clock__bell:hover {
+  filter: brightness(0.9);
+}
+
+.clock__bell svg {
+  stroke: var(--color-text) !important;
+}
+
+.clock__bell:hover svg {
+  stroke: var(--color-primary) !important;
+}
+
+.clock__bell--muted svg {
+  stroke: var(--color-text-muted) !important;
+}
+
+.clock__bell--muted {
+  opacity: 0.5;
 }
 
 .clock__dial {

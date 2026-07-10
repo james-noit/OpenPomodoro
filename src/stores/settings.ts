@@ -12,6 +12,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const language = useLocalStorage<Language>('openpomodoro.language', 'en')
   const focusMinutes = useLocalStorage<number>('openpomodoro.focusMinutes', DEFAULT_FOCUS_MINUTES)
   const breakMinutes = useLocalStorage<number>('openpomodoro.breakMinutes', DEFAULT_BREAK_MINUTES)
+  const bellSound = useLocalStorage<boolean>('openpomodoro.bellSound', true)
 
   function toggleTheme() {
     theme.value = theme.value === 'dark' ? 'light' : 'dark'
@@ -29,11 +30,16 @@ export const useSettingsStore = defineStore('settings', () => {
     breakMinutes.value = Math.max(1, Math.min(60, Math.round(minutes)))
   }
 
+  function setBellSound(val: boolean) {
+    bellSound.value = val
+  }
+
   function reset() {
     theme.value = 'dark'
     language.value = 'en'
     focusMinutes.value = DEFAULT_FOCUS_MINUTES
     breakMinutes.value = DEFAULT_BREAK_MINUTES
+    bellSound.value = true
   }
 
   return {
@@ -41,10 +47,12 @@ export const useSettingsStore = defineStore('settings', () => {
     language,
     focusMinutes,
     breakMinutes,
+    bellSound,
     toggleTheme,
     setLanguage,
     setFocusMinutes,
     setBreakMinutes,
+    setBellSound,
     reset,
   }
 })
