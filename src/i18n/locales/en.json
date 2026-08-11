@@ -33,6 +33,7 @@
     "title": "To-Do List",
     "addPlaceholder": "What needs to be done?",
     "add": "Add",
+    "filterToDos": "Filter to-dos",
     "importance": "Importance",
     "urgency": "Urgency",
     "tags": "Tags",
@@ -44,6 +45,11 @@
     "empty": "No tasks yet.",
     "moveUp": "Move up",
     "moveDown": "Move down",
-    "delete": "Delete"
+    "delete": "Delete",
+    "dragHandle": "Drag to reorder",
+    "completedTasks": "Completed tasks",
+    "restore": "Restore",
+    "noCompleted": "No completed tasks yet.",
+    "close": "Close"
   }
 }

@@ -33,6 +33,7 @@
     "title": "Lista de tareas",
     "addPlaceholder": "¿Qué hay que hacer?",
     "add": "Añadir",
+    "filterToDos": "Filtrar tareas",
     "importance": "Importancia",
     "urgency": "Urgencia",
     "tags": "Etiquetas",
@@ -44,6 +45,11 @@
     "empty": "Aún no hay tareas.",
     "moveUp": "Subir",
     "moveDown": "Bajar",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "dragHandle": "Arrastrar para reordenar",
+    "completedTasks": "Tareas completadas",
+    "restore": "Restaurar",
+    "noCompleted": "Aún no hay tareas completadas.",
+    "close": "Cerrar"
   }
 }

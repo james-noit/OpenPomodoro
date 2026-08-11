@@ -4,6 +4,7 @@ import { useTodosStore } from '../stores/todos'
 import TodoForm from './TodoForm.vue'
 import TodoFilters from './TodoFilters.vue'
 import TodoItem from './TodoItem.vue'
+import CompletedTasksStack from './CompletedTasksStack.vue'
 
 const { t } = useI18n()
 const todos = useTodosStore()
@@ -13,7 +14,10 @@ const todos = useTodosStore()
   <section class="todo-list">
     <h2>{{ t('todo.title') }}</h2>
     <TodoForm />
-    <TodoFilters v-if="todos.todos.length" />
+    <div v-if="todos.todos.length" class="todo-list__toolbar">
+      <TodoFilters />
+      <CompletedTasksStack v-if="todos.completedTodos.length" />
+    </div>
     <p v-if="!todos.filteredTodos.length" class="todo-list__empty">{{ t('todo.empty') }}</p>
     <ul v-else class="todo-list__items">
       <TodoItem
@@ -36,6 +40,13 @@ const todos = useTodosStore()
 
 .todo-list h2 {
   margin: 0;
+}
+
+.todo-list__toolbar {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .todo-list__items {

@@ -9,6 +9,7 @@ export interface Todo {
   done: boolean
   order: number
   createdAt: number
+  completedAt?: number
 }
 
 export interface TodoExport {

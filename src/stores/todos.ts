@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage'
 import type { Priority, Todo, TodoExport } from '../types/todo'
 
@@ -31,11 +31,20 @@ export const useTodosStore = defineStore('todos', () => {
 
   const filteredTodos = computed(() => {
     return todos.value
+      .filter((todo) => !todo.done)
       .filter((todo) => filters.value.importance === 'all' || todo.importance === filters.value.importance)
       .filter((todo) => filters.value.urgency === 'all' || todo.urgency === filters.value.urgency)
       .filter((todo) => filters.value.tag === 'all' || todo.tags.includes(filters.value.tag))
       .sort((a, b) => a.order - b.order)
   })
+
+  const completedTodos = computed(() => {
+    return todos.value
+      .filter((todo) => todo.done)
+      .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
+  })
+
+  const draggedId = ref<string | null>(null)
 
   function addTodo(input: { title: string; importance: Priority; urgency: Priority; tags: string[] }) {
     const maxOrder = todos.value.reduce((max, t) => Math.max(max, t.order), -1)
@@ -57,11 +66,13 @@ export const useTodosStore = defineStore('todos', () => {
 
   function toggleDone(id: string) {
     const todo = todos.value.find((t) => t.id === id)
-    if (todo) todo.done = !todo.done
+    if (!todo) return
+    todo.done = !todo.done
+    todo.completedAt = todo.done ? Date.now() : undefined
   }
 
   function moveTodo(id: string, direction: -1 | 1) {
-    const sorted = [...todos.value].sort((a, b) => a.order - b.order)
+    const sorted = todos.value.filter((t) => !t.done).sort((a, b) => a.order - b.order)
     const index = sorted.findIndex((t) => t.id === id)
     const targetIndex = index + direction
     if (index === -1 || targetIndex < 0 || targetIndex >= sorted.length) return
@@ -70,6 +81,34 @@ export const useTodosStore = defineStore('todos', () => {
     const tempOrder = a.order
     a.order = b.order
     b.order = tempOrder
+  }
+
+  function reorderTodoBefore(draggedTodoId: string, targetTodoId: string, before: boolean) {
+    if (draggedTodoId === targetTodoId) return
+    const sorted = todos.value.filter((t) => !t.done).sort((a, b) => a.order - b.order)
+    const fromIndex = sorted.findIndex((t) => t.id === draggedTodoId)
+    const targetIndex = sorted.findIndex((t) => t.id === targetTodoId)
+    if (fromIndex === -1 || targetIndex === -1) return
+    let insertIndex = before ? targetIndex : targetIndex + 1
+    if (insertIndex > fromIndex) insertIndex -= 1
+    if (insertIndex === fromIndex) return
+    const [moved] = sorted.splice(fromIndex, 1)
+    sorted.splice(insertIndex, 0, moved)
+    sorted.forEach((todo, index) => {
+      todo.order = index
+    })
+  }
+
+  function startDrag(id: string) {
+    draggedId.value = id
+  }
+
+  function dragOverTodo(targetId: string, before: boolean) {
+    if (draggedId.value) reorderTodoBefore(draggedId.value, targetId, before)
+  }
+
+  function endDrag() {
+    draggedId.value = null
   }
 
   function setFilters(next: Partial<TodoFilters>) {
@@ -97,10 +136,15 @@ export const useTodosStore = defineStore('todos', () => {
     filters,
     allTags,
     filteredTodos,
+    completedTodos,
+    draggedId,
     addTodo,
     removeTodo,
     toggleDone,
     moveTodo,
+    startDrag,
+    dragOverTodo,
+    endDrag,
     setFilters,
     exportTodos,
     importTodos,

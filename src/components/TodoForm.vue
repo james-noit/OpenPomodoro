@@ -11,6 +11,8 @@ const title = ref('')
 const importance = ref<Priority>('medium')
 const urgency = ref<Priority>('medium')
 const tagsInput = ref('')
+const expanded = ref(false)
+const formEl = ref<HTMLFormElement | null>(null)
 
 function submit() {
   const trimmed = title.value.trim()
@@ -22,37 +24,54 @@ function submit() {
   todos.addTodo({ title: trimmed, importance: importance.value, urgency: urgency.value, tags })
   title.value = ''
   tagsInput.value = ''
+  expanded.value = false
+  ;(document.activeElement as HTMLElement | null)?.blur()
+}
+
+function onFocusOut(event: FocusEvent) {
+  const next = event.relatedTarget as Node | null
+  if (formEl.value && next && formEl.value.contains(next)) return
+  expanded.value = false
 }
 </script>
 
 <template>
-  <form class="todo-form" @submit.prevent="submit">
+  <form
+    ref="formEl"
+    class="todo-form"
+    :class="{ 'todo-form--expanded': expanded }"
+    @submit.prevent="submit"
+    @focusin="expanded = true"
+    @focusout="onFocusOut"
+  >
     <input
       v-model="title"
       type="text"
       class="todo-form__title"
       :placeholder="t('todo.addPlaceholder')"
     />
-    <div class="todo-form__row">
-      <label>
-        {{ t('todo.importance') }}
-        <select v-model="importance">
-          <option value="low">{{ t('todo.low') }}</option>
-          <option value="medium">{{ t('todo.medium') }}</option>
-          <option value="high">{{ t('todo.high') }}</option>
-        </select>
-      </label>
-      <label>
-        {{ t('todo.urgency') }}
-        <select v-model="urgency">
-          <option value="low">{{ t('todo.low') }}</option>
-          <option value="medium">{{ t('todo.medium') }}</option>
-          <option value="high">{{ t('todo.high') }}</option>
-        </select>
-      </label>
+    <div v-if="expanded" class="todo-form__details">
+      <div class="todo-form__row">
+        <label>
+          {{ t('todo.importance') }}
+          <select v-model="importance">
+            <option value="low">{{ t('todo.low') }}</option>
+            <option value="medium">{{ t('todo.medium') }}</option>
+            <option value="high">{{ t('todo.high') }}</option>
+          </select>
+        </label>
+        <label>
+          {{ t('todo.urgency') }}
+          <select v-model="urgency">
+            <option value="low">{{ t('todo.low') }}</option>
+            <option value="medium">{{ t('todo.medium') }}</option>
+            <option value="high">{{ t('todo.high') }}</option>
+          </select>
+        </label>
+      </div>
+      <input v-model="tagsInput" type="text" :placeholder="t('todo.tagsPlaceholder')" />
+      <button type="submit">{{ t('todo.add') }}</button>
     </div>
-    <input v-model="tagsInput" type="text" :placeholder="t('todo.tagsPlaceholder')" />
-    <button type="submit">{{ t('todo.add') }}</button>
   </form>
 </template>
 
@@ -78,6 +97,12 @@ function submit() {
 
 .todo-form__title {
   width: 100%;
+}
+
+.todo-form__details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .todo-form__row {
