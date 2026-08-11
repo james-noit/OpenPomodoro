@@ -33,6 +33,7 @@
     "title": "Lista de tareas",
     "addPlaceholder": "¿Qué hay que hacer?",
     "add": "Añadir",
+    "filterToDos": "Filtrar tareas",
     "importance": "Importancia",
     "urgency": "Urgencia",
     "tags": "Etiquetas",

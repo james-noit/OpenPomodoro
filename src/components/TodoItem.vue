@@ -6,6 +6,14 @@ import type { Todo } from '../types/todo'
 const props = defineProps<{ todo: Todo; isFirst: boolean; isLast: boolean }>()
 const { t } = useI18n()
 const todos = useTodosStore()
+
+function onDragOver(event: DragEvent) {
+  event.preventDefault()
+  const el = event.currentTarget as HTMLElement
+  const rect = el.getBoundingClientRect()
+  const before = event.clientY < rect.top + rect.height / 2
+  todos.dragOverTodo(props.todo.id, before)
+}
 </script>
 
 <template>
@@ -14,8 +22,8 @@ const todos = useTodosStore()
     :class="{ 'todo-item--done': props.todo.done, 'todo-item--dragging': todos.draggedId === props.todo.id }"
     draggable="true"
     @dragstart="todos.startDrag(props.todo.id)"
-    @dragover.prevent
-    @drop.prevent="todos.dropOnTodo(props.todo.id)"
+    @dragover="onDragOver"
+    @drop.prevent="todos.endDrag()"
     @dragend="todos.endDrag()"
   >
     <span class="todo-item__handle" :aria-label="t('todo.dragHandle')" aria-hidden="true">⠿</span>

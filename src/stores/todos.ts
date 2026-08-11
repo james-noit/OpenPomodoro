@@ -83,14 +83,17 @@ export const useTodosStore = defineStore('todos', () => {
     b.order = tempOrder
   }
 
-  function reorderTodo(draggedTodoId: string, targetTodoId: string) {
+  function reorderTodoBefore(draggedTodoId: string, targetTodoId: string, before: boolean) {
     if (draggedTodoId === targetTodoId) return
     const sorted = todos.value.filter((t) => !t.done).sort((a, b) => a.order - b.order)
     const fromIndex = sorted.findIndex((t) => t.id === draggedTodoId)
-    const toIndex = sorted.findIndex((t) => t.id === targetTodoId)
-    if (fromIndex === -1 || toIndex === -1) return
+    const targetIndex = sorted.findIndex((t) => t.id === targetTodoId)
+    if (fromIndex === -1 || targetIndex === -1) return
+    let insertIndex = before ? targetIndex : targetIndex + 1
+    if (insertIndex > fromIndex) insertIndex -= 1
+    if (insertIndex === fromIndex) return
     const [moved] = sorted.splice(fromIndex, 1)
-    sorted.splice(toIndex, 0, moved)
+    sorted.splice(insertIndex, 0, moved)
     sorted.forEach((todo, index) => {
       todo.order = index
     })
@@ -100,9 +103,8 @@ export const useTodosStore = defineStore('todos', () => {
     draggedId.value = id
   }
 
-  function dropOnTodo(targetId: string) {
-    if (draggedId.value) reorderTodo(draggedId.value, targetId)
-    draggedId.value = null
+  function dragOverTodo(targetId: string, before: boolean) {
+    if (draggedId.value) reorderTodoBefore(draggedId.value, targetId, before)
   }
 
   function endDrag() {
@@ -140,9 +142,8 @@ export const useTodosStore = defineStore('todos', () => {
     removeTodo,
     toggleDone,
     moveTodo,
-    reorderTodo,
     startDrag,
-    dropOnTodo,
+    dragOverTodo,
     endDrag,
     setFilters,
     exportTodos,

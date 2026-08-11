@@ -33,6 +33,7 @@
     "title": "To-Do List",
     "addPlaceholder": "What needs to be done?",
     "add": "Add",
+    "filterToDos": "Filter to-dos",
     "importance": "Importance",
     "urgency": "Urgency",
     "tags": "Tags",
