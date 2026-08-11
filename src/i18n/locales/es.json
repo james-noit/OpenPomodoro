@@ -48,6 +48,7 @@
     "delete": "Eliminar",
     "dragHandle": "Arrastrar para reordenar",
     "completedTasks": "Tareas completadas",
+    "restore": "Restaurar",
     "noCompleted": "Aún no hay tareas completadas.",
     "close": "Cerrar"
   }

@@ -44,8 +44,7 @@ const todos = useTodosStore()
 
 .todo-list__toolbar {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: stretch;
   gap: 0.75rem;
   flex-wrap: wrap;
 }

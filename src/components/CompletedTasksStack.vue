@@ -39,7 +39,6 @@ function close() {
         <p v-if="!todos.completedTodos.length" class="completed-stack__empty">{{ t('todo.noCompleted') }}</p>
         <ul v-else class="completed-stack__list">
           <li v-for="todo in todos.completedTodos" :key="todo.id" class="completed-item">
-            <input type="checkbox" checked @change="todos.toggleDone(todo.id)" />
             <div class="completed-item__content">
               <span class="completed-item__title">{{ todo.title }}</span>
               <div class="completed-item__badges">
@@ -48,7 +47,17 @@ function close() {
                 <span v-for="tag in todo.tags" :key="tag" class="badge badge--tag">{{ tag }}</span>
               </div>
             </div>
-            <button type="button" :aria-label="t('todo.delete')" @click="todos.removeTodo(todo.id)">✕</button>
+            <div class="completed-item__actions">
+              <button type="button" class="completed-item__restore" :aria-label="t('todo.restore')" :title="t('todo.restore')" @click="todos.toggleDone(todo.id)">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M12 5V2L7 7l5 5V8c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
+                  />
+                </svg>
+              </button>
+              <button type="button" :aria-label="t('todo.delete')" @click="todos.removeTodo(todo.id)">✕</button>
+            </div>
           </li>
         </ul>
       </div>
@@ -57,6 +66,10 @@ function close() {
 </template>
 
 <style scoped>
+.completed-stack {
+  display: flex;
+}
+
 .completed-stack__trigger {
   display: flex;
   align-items: center;
@@ -66,7 +79,6 @@ function close() {
   border-radius: 6px;
   padding: 0.6rem 0.9rem;
   color: var(--color-text);
-  align-self: flex-start;
 }
 
 .completed-stack__trigger:hover {
@@ -188,12 +200,24 @@ function close() {
   flex-wrap: wrap;
 }
 
-.completed-item button {
+.completed-item__actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.completed-item__actions button {
   background: none;
   border: 1px solid var(--color-border);
   border-radius: 4px;
   color: var(--color-text);
   padding: 0.2rem 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.completed-item__restore:hover {
+  color: var(--color-primary);
 }
 
 .badge {

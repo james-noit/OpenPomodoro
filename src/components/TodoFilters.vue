@@ -39,7 +39,10 @@ function onTag(event: Event) {
       :aria-expanded="open"
       @click="toggle"
     >
-      {{ t('todo.filterToDos') }}
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+        <path fill="currentColor" d="M3 5h18v2l-7 7v6l-4-2v-4L3 7z" />
+      </svg>
+      <span>{{ t('todo.filterToDos') }}</span>
     </button>
     <div v-if="open" class="todo-filters__overlay" @click="close"></div>
     <div v-if="open" class="todo-filters__panel" role="dialog" :aria-label="t('todo.filterToDos')">
@@ -75,9 +78,13 @@ function onTag(event: Event) {
 <style scoped>
 .todo-filters {
   position: relative;
+  display: flex;
 }
 
 .todo-filters__trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   background: none;
   border: 1px solid var(--color-border);
   border-radius: 6px;
