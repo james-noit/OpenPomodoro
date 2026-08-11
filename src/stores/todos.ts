@@ -45,6 +45,16 @@ export const useTodosStore = defineStore('todos', () => {
   })
 
   const draggedId = ref<string | null>(null)
+  const currentTaskId = useLocalStorage<string | null>('openpomodoro.currentTaskId', null)
+
+  const currentTask = computed(() => {
+    if (!currentTaskId.value) return null
+    return todos.value.find((t) => t.id === currentTaskId.value && !t.done) ?? null
+  })
+
+  function setCurrentTask(id: string | null) {
+    currentTaskId.value = id
+  }
 
   function addTodo(input: { title: string; importance: Priority; urgency: Priority; tags: string[] }) {
     const maxOrder = todos.value.reduce((max, t) => Math.max(max, t.order), -1)
@@ -62,6 +72,7 @@ export const useTodosStore = defineStore('todos', () => {
 
   function removeTodo(id: string) {
     todos.value = todos.value.filter((todo) => todo.id !== id)
+    if (currentTaskId.value === id) currentTaskId.value = null
   }
 
   function toggleDone(id: string) {
@@ -69,6 +80,7 @@ export const useTodosStore = defineStore('todos', () => {
     if (!todo) return
     todo.done = !todo.done
     todo.completedAt = todo.done ? Date.now() : undefined
+    if (todo.done && currentTaskId.value === id) currentTaskId.value = null
   }
 
   function moveTodo(id: string, direction: -1 | 1) {
@@ -129,6 +141,7 @@ export const useTodosStore = defineStore('todos', () => {
   function reset() {
     todos.value = []
     filters.value = { importance: 'all', urgency: 'all', tag: 'all' }
+    currentTaskId.value = null
   }
 
   return {
@@ -138,6 +151,8 @@ export const useTodosStore = defineStore('todos', () => {
     filteredTodos,
     completedTodos,
     draggedId,
+    currentTaskId,
+    currentTask,
     addTodo,
     removeTodo,
     toggleDone,
@@ -146,6 +161,7 @@ export const useTodosStore = defineStore('todos', () => {
     dragOverTodo,
     endDrag,
     setFilters,
+    setCurrentTask,
     exportTodos,
     importTodos,
     reset,
