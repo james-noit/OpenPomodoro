@@ -44,6 +44,10 @@
     "empty": "Aún no hay tareas.",
     "moveUp": "Subir",
     "moveDown": "Bajar",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "dragHandle": "Arrastrar para reordenar",
+    "completedTasks": "Tareas completadas",
+    "noCompleted": "Aún no hay tareas completadas.",
+    "close": "Cerrar"
   }
 }

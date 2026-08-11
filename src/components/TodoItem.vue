@@ -9,7 +9,16 @@ const todos = useTodosStore()
 </script>
 
 <template>
-  <li class="todo-item" :class="{ 'todo-item--done': props.todo.done }">
+  <li
+    class="todo-item"
+    :class="{ 'todo-item--done': props.todo.done, 'todo-item--dragging': todos.draggedId === props.todo.id }"
+    draggable="true"
+    @dragstart="todos.startDrag(props.todo.id)"
+    @dragover.prevent
+    @drop.prevent="todos.dropOnTodo(props.todo.id)"
+    @dragend="todos.endDrag()"
+  >
+    <span class="todo-item__handle" :aria-label="t('todo.dragHandle')" aria-hidden="true">⠿</span>
     <input
       type="checkbox"
       :checked="props.todo.done"
@@ -54,11 +63,23 @@ const todos = useTodosStore()
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background-color: var(--color-surface);
+  transition: opacity 0.15s, transform 0.15s;
 }
 
 .todo-item--done .todo-item__title {
   text-decoration: line-through;
   color: var(--color-text-muted);
+}
+
+.todo-item--dragging {
+  opacity: 0.4;
+}
+
+.todo-item__handle {
+  cursor: grab;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  user-select: none;
 }
 
 .todo-item__content {

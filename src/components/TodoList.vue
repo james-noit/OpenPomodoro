@@ -4,6 +4,7 @@ import { useTodosStore } from '../stores/todos'
 import TodoForm from './TodoForm.vue'
 import TodoFilters from './TodoFilters.vue'
 import TodoItem from './TodoItem.vue'
+import CompletedTasksStack from './CompletedTasksStack.vue'
 
 const { t } = useI18n()
 const todos = useTodosStore()
@@ -24,6 +25,7 @@ const todos = useTodosStore()
         :is-last="index === todos.filteredTodos.length - 1"
       />
     </ul>
+    <CompletedTasksStack v-if="todos.completedTodos.length" />
   </section>
 </template>
 

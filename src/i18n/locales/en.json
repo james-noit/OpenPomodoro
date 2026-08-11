@@ -44,6 +44,10 @@
     "empty": "No tasks yet.",
     "moveUp": "Move up",
     "moveDown": "Move down",
-    "delete": "Delete"
+    "delete": "Delete",
+    "dragHandle": "Drag to reorder",
+    "completedTasks": "Completed tasks",
+    "noCompleted": "No completed tasks yet.",
+    "close": "Close"
   }
 }
