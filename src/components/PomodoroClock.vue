@@ -58,11 +58,8 @@ function onDurationChange(event: Event) {
 const bellSounds: { id: BellSoundId }[] = [
   { id: 'digital' },
   { id: 'classic' },
-  { id: 'chime' },
-  { id: 'soft' },
-  { id: 'wave' },
-  { id: 'deep' },
-  { id: 'ambient' },
+  { id: 'siren' },
+  { id: 'buzzer' },
 ]
 
 const soundPanelOpen = ref(false)
@@ -102,34 +99,25 @@ function playNote(
 function playSound(id: BellSoundId) {
   const ctx = getAudioCtx()
   if (id === 'digital') {
-    // ~0.5s
-    playNote(ctx, 1046.5, 0, 0.12, 'square', 0.15)
-    playNote(ctx, 1046.5, 0.18, 0.12, 'square', 0.15)
-    playNote(ctx, 1046.5, 0.36, 0.12, 'square', 0.15)
+    // Rapid high-pitched square beeps, 2s
+    for (let i = 0; i < 10; i++) {
+      playNote(ctx, 1200, i * 0.2, 0.1, 'square', 0.35)
+    }
   } else if (id === 'classic') {
-    // ~0.8s
-    playNote(ctx, 880, 0, 0.5)
-    playNote(ctx, 880, 0.3, 0.5)
-  } else if (id === 'chime') {
-    // ~0.9s
-    playNote(ctx, 523.25, 0, 0.4)
-    playNote(ctx, 659.25, 0.18, 0.4)
-    playNote(ctx, 783.99, 0.36, 0.5)
-  } else if (id === 'soft') {
-    // 1s
-    playNote(ctx, 330, 0, 1.0, 'sine', 0.2)
-  } else if (id === 'wave') {
-    // 2s
-    playNote(ctx, 440, 0, 1.0, 'sine', 0.22)
-    playNote(ctx, 330, 1.0, 1.0, 'sine', 0.22)
-  } else if (id === 'deep') {
-    // 3s
-    playNote(ctx, 196, 0, 3.0, 'sine', 0.25)
-  } else if (id === 'ambient') {
-    // 4s
-    playNote(ctx, 261.63, 0, 1.4, 'sine', 0.2)
-    playNote(ctx, 329.63, 1.3, 1.4, 'sine', 0.2)
-    playNote(ctx, 392.0, 2.6, 1.4, 'sine', 0.2)
+    // Fast alternating two-tone ring, 2s
+    for (let i = 0; i < 10; i++) {
+      playNote(ctx, i % 2 === 0 ? 880 : 1108.7, i * 0.2, 0.2, 'square', 0.32)
+    }
+  } else if (id === 'siren') {
+    // Wide-swing wailing siren, 2s
+    for (let i = 0; i < 10; i++) {
+      playNote(ctx, i % 2 === 0 ? 600 : 1400, i * 0.2, 0.2, 'sawtooth', 0.3)
+    }
+  } else if (id === 'buzzer') {
+    // Deep, punchy buzzer pulses, 2s
+    for (let i = 0; i < 5; i++) {
+      playNote(ctx, 220, i * 0.4, 0.35, 'sawtooth', 0.35)
+    }
   }
 }
 

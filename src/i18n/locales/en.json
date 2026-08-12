@@ -34,11 +34,8 @@
     "sounds": {
       "digital": "Digital",
       "classic": "Classic",
-      "chime": "Chime",
-      "soft": "Soft",
-      "wave": "Wave (2s)",
-      "deep": "Deep (3s)",
-      "ambient": "Ambient (4s)"
+      "siren": "Siren",
+      "buzzer": "Buzzer"
     },
     "currentTask": "Current task",
     "selectTask": "Select task",

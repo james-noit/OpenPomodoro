@@ -34,11 +34,8 @@
     "sounds": {
       "digital": "Digital",
       "classic": "Clásico",
-      "chime": "Campanilla",
-      "soft": "Suave",
-      "wave": "Ola (2s)",
-      "deep": "Profundo (3s)",
-      "ambient": "Ambiental (4s)"
+      "siren": "Sirena",
+      "buzzer": "Zumbador"
     },
     "currentTask": "Tarea actual",
     "selectTask": "Seleccionar tarea",

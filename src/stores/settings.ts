@@ -3,7 +3,7 @@ import { useLocalStorage } from '../composables/useLocalStorage'
 
 export type Theme = 'light' | 'dark'
 export type Language = 'en' | 'es'
-export type BellSoundId = 'digital' | 'classic' | 'chime' | 'soft' | 'wave' | 'deep' | 'ambient'
+export type BellSoundId = 'digital' | 'classic' | 'siren' | 'buzzer'
 
 export const DEFAULT_FOCUS_MINUTES = 25
 export const DEFAULT_BREAK_MINUTES = 5
