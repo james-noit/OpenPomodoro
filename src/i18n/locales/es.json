@@ -74,5 +74,25 @@
     "restore": "Restaurar",
     "noCompleted": "Aún no hay tareas completadas.",
     "close": "Cerrar"
+  },
+  "multitask": {
+    "toggleLabel": "Multitarea IA",
+    "capacity": "Tareas simultáneas que puedo manejar",
+    "capacityHint": "Solo informativo: no limita las tarjetas de abajo.",
+    "addCard": "Añadir tarjeta",
+    "removeCard": "Eliminar tarjeta",
+    "emptyGrid": "Aún no hay tarjetas. Añade una para empezar a multitarear.",
+    "manageTasks": "Tareas",
+    "taskPool": "Banco de tareas",
+    "assignToCard": "Añadir como tarjeta nueva",
+    "inGrid": "En la cuadrícula",
+    "clear": "Vaciar",
+    "finish": "Terminar",
+    "advanceQuestion": "¿Cómo hemos avanzado en este tema?",
+    "advanceOptions": {
+      "stalled": "[X] Estancado",
+      "moving": "> Avanzando",
+      "moving-fast": ">> ¡Avanzando rápido!"
+    }
   }
 }

@@ -1,33 +1,18 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '../stores/settings'
 import { useTodosStore } from '../stores/todos'
+import { useClockStore, playSound } from '../stores/clock'
 import type { BellSoundId } from '../stores/settings'
 
 const { t } = useI18n()
 const settings = useSettingsStore()
 const todos = useTodosStore()
-
-type Mode = 'focus' | 'break'
-
-const mode = ref<Mode>('focus')
-const running = ref(false)
-let intervalId: ReturnType<typeof setInterval> | undefined
-let hasTicked = false
-
-const durationMinutes = computed(() =>
-  mode.value === 'focus' ? settings.focusMinutes : settings.breakMinutes,
-)
-const totalSeconds = computed(() => durationMinutes.value * 60)
-const remainingSeconds = ref(totalSeconds.value)
-
-watch([mode, totalSeconds], () => {
-  if (!running.value) remainingSeconds.value = totalSeconds.value
-})
+const clock = useClockStore()
 
 const progress = computed(() =>
-  totalSeconds.value === 0 ? 0 : 1 - remainingSeconds.value / totalSeconds.value,
+  clock.totalSeconds === 0 ? 0 : 1 - clock.remainingSeconds / clock.totalSeconds,
 )
 
 const radius = 90
@@ -35,8 +20,8 @@ const circumference = 2 * Math.PI * radius
 const dashOffset = computed(() => circumference * (1 - progress.value))
 
 const formattedTime = computed(() => {
-  const minutes = Math.floor(remainingSeconds.value / 60)
-  const seconds = remainingSeconds.value % 60
+  const minutes = Math.floor(clock.remainingSeconds / 60)
+  const seconds = clock.remainingSeconds % 60
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 })
 
@@ -44,14 +29,14 @@ const focusPresets = [1, 5, 10, 15, 20, 25, 30, 45, 60, 90, 120, 180]
 const breakPresets = [1, 5, 10, 15, 20, 25, 30, 45, 60]
 
 const durationOptions = computed(() => {
-  const presets = mode.value === 'focus' ? focusPresets : breakPresets
-  if (presets.includes(durationMinutes.value)) return presets
-  return [...presets, durationMinutes.value].sort((a, b) => a - b)
+  const presets = clock.mode === 'focus' ? focusPresets : breakPresets
+  if (presets.includes(clock.durationMinutes)) return presets
+  return [...presets, clock.durationMinutes].sort((a, b) => a - b)
 })
 
 function onDurationChange(event: Event) {
   const minutes = Number((event.target as HTMLSelectElement).value)
-  if (mode.value === 'focus') settings.setFocusMinutes(minutes)
+  if (clock.mode === 'focus') settings.setFocusMinutes(minutes)
   else settings.setBreakMinutes(minutes)
 }
 
@@ -63,133 +48,6 @@ const bellSounds: { id: BellSoundId }[] = [
 ]
 
 const soundPanelOpen = ref(false)
-
-let audioCtx: AudioContext | null = null
-
-function getAudioCtx(): AudioContext {
-  if (!audioCtx) audioCtx = new AudioContext()
-  return audioCtx
-}
-
-function playNote(
-  ctx: AudioContext,
-  frequency: number,
-  startDelay: number,
-  duration: number,
-  type: OscillatorType = 'sine',
-  gain = 0.3,
-) {
-  const oscillator = ctx.createOscillator()
-  const gainNode = ctx.createGain()
-  const startTime = ctx.currentTime + startDelay
-
-  oscillator.type = type
-  oscillator.frequency.setValueAtTime(frequency, startTime)
-
-  gainNode.gain.setValueAtTime(gain, startTime)
-  gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration)
-
-  oscillator.connect(gainNode)
-  gainNode.connect(ctx.destination)
-
-  oscillator.start(startTime)
-  oscillator.stop(startTime + duration)
-}
-
-function playSound(id: BellSoundId) {
-  const ctx = getAudioCtx()
-  if (id === 'digital') {
-    // Rapid high-pitched square beeps, 2s
-    for (let i = 0; i < 10; i++) {
-      playNote(ctx, 1200, i * 0.2, 0.1, 'square', 0.35)
-    }
-  } else if (id === 'classic') {
-    // Fast alternating two-tone ring, 2s
-    for (let i = 0; i < 10; i++) {
-      playNote(ctx, i % 2 === 0 ? 880 : 1108.7, i * 0.2, 0.2, 'square', 0.32)
-    }
-  } else if (id === 'siren') {
-    // Wide-swing wailing siren, 2s
-    for (let i = 0; i < 10; i++) {
-      playNote(ctx, i % 2 === 0 ? 600 : 1400, i * 0.2, 0.2, 'sawtooth', 0.3)
-    }
-  } else if (id === 'buzzer') {
-    // Deep, punchy buzzer pulses, 2s
-    for (let i = 0; i < 5; i++) {
-      playNote(ctx, 220, i * 0.4, 0.35, 'sawtooth', 0.35)
-    }
-  }
-}
-
-function ensureNotificationPermission() {
-  if (typeof Notification === 'undefined') return
-  if (Notification.permission === 'default') {
-    void Notification.requestPermission()
-  }
-}
-
-function sendNotification(finishedMode: Mode) {
-  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
-  const body = finishedMode === 'focus' ? t('clock.notificationBodyFocus') : t('clock.notificationBodyBreak')
-  new Notification(t('clock.notificationTitle'), { body })
-}
-
-const sessionModalOpen = ref(false)
-
-function tick() {
-  if (remainingSeconds.value <= 0) {
-    if (!hasTicked) {
-      hasTicked = true
-      pause()
-      if (settings.bellSound) playSound(settings.bellSoundId)
-      sendNotification(mode.value)
-      switchToNextMode()
-    }
-    return
-  }
-  remainingSeconds.value -= 1
-}
-
-function switchToNextMode() {
-  mode.value = mode.value === 'focus' ? 'break' : 'focus'
-  hasTicked = false
-  sessionModalOpen.value = true
-}
-
-function start() {
-  if (running.value || remainingSeconds.value <= 0) return
-  ensureNotificationPermission()
-  running.value = true
-  intervalId = setInterval(tick, 1000)
-}
-
-function pause() {
-  running.value = false
-  if (intervalId) clearInterval(intervalId)
-  intervalId = undefined
-}
-
-function reset() {
-  hasTicked = false
-  pause()
-  remainingSeconds.value = totalSeconds.value
-}
-
-function setMode(next: Mode) {
-  hasTicked = false
-  pause()
-  mode.value = next
-  remainingSeconds.value = totalSeconds.value
-}
-
-function startNextSession() {
-  sessionModalOpen.value = false
-  start()
-}
-
-function dismissSessionModal() {
-  sessionModalOpen.value = false
-}
 
 const taskModalOpen = ref(false)
 
@@ -209,21 +67,17 @@ function finishTask() {
 }
 
 onMounted(() => {
-  ensureNotificationPermission()
-})
-
-onUnmounted(() => {
-  if (intervalId) clearInterval(intervalId)
+  clock.ensureNotificationPermission()
 })
 </script>
 
 <template>
   <section class="clock">
     <div class="clock__modes">
-      <button type="button" :class="{ active: mode === 'focus' }" @click="setMode('focus')">
+      <button type="button" :class="{ active: clock.mode === 'focus' }" @click="clock.setMode('focus')">
         {{ t('clock.focus') }}
       </button>
-      <button type="button" :class="{ active: mode === 'break' }" @click="setMode('break')">
+      <button type="button" :class="{ active: clock.mode === 'break' }" @click="clock.setMode('break')">
         {{ t('clock.break') }}
       </button>
       <div class="clock__bell-wrap">
@@ -310,16 +164,16 @@ onUnmounted(() => {
     <div class="clock__duration">
       <label>
         {{ t('clock.duration') }}
-        <select :value="durationMinutes" :disabled="running" @change="onDurationChange">
+        <select :value="clock.durationMinutes" :disabled="clock.running" @change="onDurationChange">
           <option v-for="m in durationOptions" :key="m" :value="m">{{ m }} {{ t('clock.minutes') }}</option>
         </select>
       </label>
     </div>
 
     <div class="clock__controls">
-      <button type="button" v-if="!running" @click="start">{{ t('clock.start') }}</button>
-      <button type="button" v-else @click="pause">{{ t('clock.pause') }}</button>
-      <button type="button" @click="reset">{{ t('clock.reset') }}</button>
+      <button type="button" v-if="!clock.running" @click="clock.start()">{{ t('clock.start') }}</button>
+      <button type="button" v-else @click="clock.pause()">{{ t('clock.pause') }}</button>
+      <button type="button" @click="clock.reset()">{{ t('clock.reset') }}</button>
     </div>
 
     <div v-if="taskModalOpen" class="clock__overlay" @click.self="taskModalOpen = false">
@@ -337,13 +191,13 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div v-if="sessionModalOpen" class="clock__overlay">
+    <div v-if="clock.sessionModalOpen" class="clock__overlay">
       <div class="clock__modal" role="dialog" aria-modal="true" :aria-label="t('clock.timeUp')">
-        <h3>{{ mode === 'break' ? t('clock.timeUpFocusTitle') : t('clock.timeUpBreakTitle') }}</h3>
-        <p>{{ mode === 'break' ? t('clock.startBreakPrompt') : t('clock.startFocusPrompt') }}</p>
+        <h3>{{ clock.mode === 'break' ? t('clock.timeUpFocusTitle') : t('clock.timeUpBreakTitle') }}</h3>
+        <p>{{ clock.mode === 'break' ? t('clock.startBreakPrompt') : t('clock.startFocusPrompt') }}</p>
         <div class="clock__modal-actions">
-          <button type="button" @click="startNextSession">{{ t('clock.startNow') }}</button>
-          <button type="button" class="clock__modal-secondary" @click="dismissSessionModal">{{ t('clock.later') }}</button>
+          <button type="button" @click="clock.startNextSession()">{{ t('clock.startNow') }}</button>
+          <button type="button" class="clock__modal-secondary" @click="clock.dismissSessionModal()">{{ t('clock.later') }}</button>
         </div>
       </div>
     </div>

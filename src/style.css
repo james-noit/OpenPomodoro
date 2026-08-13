@@ -11,6 +11,10 @@
   --color-low: #c17e2e;
   --color-medium: #d97a3f;
   --color-high: #a84e24;
+  --color-capacity-safe: #4c8c2b;
+  --color-capacity-elevated: #9caa2e;
+  --color-capacity-high: #d9a441;
+  --color-capacity-critical: #d9603f;
 
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color-scheme: light;
@@ -29,6 +33,10 @@
   --color-low: #859900;
   --color-medium: #b58900;
   --color-high: #d30102;
+  --color-capacity-safe: #859900;
+  --color-capacity-elevated: #b58900;
+  --color-capacity-high: #cb8b1e;
+  --color-capacity-critical: #dc322f;
   color-scheme: dark;
 }
 

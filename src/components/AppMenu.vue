@@ -3,10 +3,14 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTodosStore } from '../stores/todos'
 import { useSettingsStore } from '../stores/settings'
+import { useMultitaskStore } from '../stores/multitask'
+import { useAdvanceHistoryStore } from '../stores/advanceHistory'
 
 const { t } = useI18n()
 const todos = useTodosStore()
 const settings = useSettingsStore()
+const multitask = useMultitaskStore()
+const advanceHistory = useAdvanceHistoryStore()
 
 const open = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -54,6 +58,8 @@ function resetAll() {
   if (window.confirm(t('menu.resetConfirm'))) {
     todos.reset()
     settings.reset()
+    multitask.reset()
+    advanceHistory.reset()
   }
 }
 </script>

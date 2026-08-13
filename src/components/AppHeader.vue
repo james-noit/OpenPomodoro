@@ -2,6 +2,7 @@
 import AppMenu from './AppMenu.vue'
 import ThemeToggle from './ThemeToggle.vue'
 import LanguageSelector from './LanguageSelector.vue'
+import MultitaskToggle from './MultitaskToggle.vue'
 
 const appVersion = __APP_VERSION__
 </script>
@@ -16,6 +17,7 @@ const appVersion = __APP_VERSION__
       <span class="app-header__version">v{{ appVersion }}</span>
     </div>
     <div class="app-header__end">
+      <MultitaskToggle />
       <LanguageSelector />
       <ThemeToggle />
     </div>

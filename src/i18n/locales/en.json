@@ -74,5 +74,25 @@
     "restore": "Restore",
     "noCompleted": "No completed tasks yet.",
     "close": "Close"
+  },
+  "multitask": {
+    "toggleLabel": "AI Multitask",
+    "capacity": "Concurrent tasks I can handle",
+    "capacityHint": "Informational only — does not limit the cards below.",
+    "addCard": "Add card",
+    "removeCard": "Remove card",
+    "emptyGrid": "No cards yet. Add one to start multitasking.",
+    "manageTasks": "Tasks",
+    "taskPool": "Task pool",
+    "assignToCard": "Add as new card",
+    "inGrid": "In grid",
+    "clear": "Clear",
+    "finish": "Finish",
+    "advanceQuestion": "How have we advanced this topic?",
+    "advanceOptions": {
+      "stalled": "[X] Stalled",
+      "moving": "> Moving",
+      "moving-fast": ">> Moving fast!"
+    }
   }
 }
