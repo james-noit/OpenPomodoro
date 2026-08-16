@@ -6,6 +6,8 @@ import { useSettingsStore } from '../stores/settings'
 import { useMultitaskStore } from '../stores/multitask'
 import { useAdvanceHistoryStore } from '../stores/advanceHistory'
 import { useProjectsStore } from '../stores/projects'
+import LanguageSelector from './LanguageSelector.vue'
+import ThemeToggle from './ThemeToggle.vue'
 
 const { t } = useI18n()
 const todos = useTodosStore()
@@ -95,6 +97,17 @@ function resetAll() {
         <button type="button" role="menuitem" @click="importTodo">{{ t('menu.importTodo') }}</button>
       </div>
       <div class="app-menu__group">
+        <span class="app-menu__group-label">{{ t('menu.preferences') }}</span>
+        <div class="app-menu__preference">
+          <span>{{ t('language.label') }}</span>
+          <LanguageSelector />
+        </div>
+        <div class="app-menu__preference">
+          <span>{{ t('theme.label') }}</span>
+          <ThemeToggle />
+        </div>
+      </div>
+      <div class="app-menu__group">
         <button type="button" role="menuitem" class="app-menu__danger" @click="resetAll">
           {{ t('menu.reset') }}
         </button>
@@ -170,5 +183,15 @@ function resetAll() {
 
 .app-menu__danger {
   color: var(--color-high);
+}
+
+.app-menu__preference {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  color: var(--color-text);
 }
 </style>

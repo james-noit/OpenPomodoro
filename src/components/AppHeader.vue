@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import AppMenu from './AppMenu.vue'
-import ThemeToggle from './ThemeToggle.vue'
-import LanguageSelector from './LanguageSelector.vue'
 import MultitaskToggle from './MultitaskToggle.vue'
 
 const appVersion = __APP_VERSION__
@@ -18,8 +16,6 @@ const appVersion = __APP_VERSION__
     </div>
     <div class="app-header__end">
       <MultitaskToggle />
-      <LanguageSelector />
-      <ThemeToggle />
     </div>
   </header>
 </template>
@@ -63,7 +59,15 @@ const appVersion = __APP_VERSION__
 }
 
 .app-header__name {
-  font-weight: 600;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-high));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--color-primary);
+  transition: background 0.2s;
 }
 
 .app-header__version {

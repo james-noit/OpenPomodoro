@@ -8,7 +8,12 @@ import ProjectForm from './ProjectForm.vue'
 import TodoForm from './TodoForm.vue'
 import type { Project } from '../types/project'
 
-const props = defineProps<{ project: Project; multitaskMode?: boolean }>()
+const props = defineProps<{
+  project: Project
+  multitaskMode?: boolean
+  isTaskPickable?: (todoId: string) => boolean
+  onPickTask?: (todoId: string) => void
+}>()
 
 const { t } = useI18n()
 const projects = useProjectsStore()
@@ -66,8 +71,13 @@ function assignExisting(todoId: string, milestoneId: string) {
   todos.assignToMilestone(todoId, props.project.id, milestoneId)
 }
 
-function assignToCard(todoId: string) {
-  multitask.addCard(todoId)
+function isPickable(todoId: string): boolean {
+  return props.isTaskPickable ? props.isTaskPickable(todoId) : !multitask.assignedTaskIds.has(todoId)
+}
+
+function pickTask(todoId: string) {
+  if (props.onPickTask) props.onPickTask(todoId)
+  else multitask.addCard(todoId)
 }
 </script>
 
@@ -122,12 +132,12 @@ function assignToCard(todoId: string) {
                 <span class="badge" :class="`badge--${todo.urgency}`">{{ t(`todo.${todo.urgency}`) }}</span>
               </div>
               <button
-                v-if="multitaskMode && !multitask.assignedTaskIds.has(todo.id)"
+                v-if="multitaskMode && isPickable(todo.id)"
                 type="button"
                 class="milestone-task__assign"
                 :aria-label="t('multitask.assignToCard')"
                 :title="t('multitask.assignToCard')"
-                @click="assignToCard(todo.id)"
+                @click="pickTask(todo.id)"
               >
                 +
               </button>

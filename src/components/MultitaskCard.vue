@@ -6,6 +6,8 @@ import { useMultitaskStore } from '../stores/multitask'
 import { useClockStore } from '../stores/clock'
 import { useAdvanceHistoryStore } from '../stores/advanceHistory'
 import AdvanceCheckPopover from './AdvanceCheckPopover.vue'
+import TodoFilters from './TodoFilters.vue'
+import ProjectsPanel from './ProjectsPanel.vue'
 import type { MultitaskCard, AdvanceProgress } from '../types/multitask'
 
 const props = defineProps<{ card: MultitaskCard; borderColor: string }>()
@@ -19,12 +21,18 @@ const advanceHistory = useAdvanceHistoryStore()
 const task = computed(() => todos.todos.find((todo) => todo.id === props.card.taskId) ?? null)
 
 const taskModalOpen = ref(false)
+const pickTab = ref<'all' | 'projects'>('all')
 
 const pickableTasks = computed(() =>
   todos.filteredTodos.filter((todo) => !multitask.assignedTaskIds.has(todo.id) || todo.id === props.card.taskId),
 )
 
+function isPickable(todoId: string): boolean {
+  return !multitask.assignedTaskIds.has(todoId) || todoId === props.card.taskId
+}
+
 function openTaskModal() {
+  pickTab.value = 'all'
   taskModalOpen.value = true
 }
 
@@ -96,12 +104,39 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
           <h3>{{ t('clock.selectTask') }}</h3>
           <button type="button" class="multitask-card__modal-close" :aria-label="t('todo.close')" @click="taskModalOpen = false">✕</button>
         </div>
-        <p v-if="!pickableTasks.length" class="multitask-card__modal-empty">{{ t('todo.empty') }}</p>
-        <ul v-else class="multitask-card__task-list">
-          <li v-for="todo in pickableTasks" :key="todo.id">
-            <button type="button" class="multitask-card__task-list-item" @click="selectTask(todo.id)">{{ todo.title }}</button>
-          </li>
-        </ul>
+        <div class="multitask-card__modal-tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="pickTab === 'all'"
+            :class="{ active: pickTab === 'all' }"
+            @click="pickTab = 'all'"
+          >
+            {{ t('todo.viewAll') }}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="pickTab === 'projects'"
+            :class="{ active: pickTab === 'projects' }"
+            @click="pickTab = 'projects'"
+          >
+            {{ t('todo.viewProjects') }}
+          </button>
+        </div>
+
+        <template v-if="pickTab === 'all'">
+          <TodoFilters />
+          <p v-if="!pickableTasks.length" class="multitask-card__modal-empty">{{ t('todo.empty') }}</p>
+          <ul v-else class="multitask-card__task-list">
+            <li v-for="todo in pickableTasks" :key="todo.id">
+              <button type="button" class="multitask-card__task-list-item" @click="selectTask(todo.id)">{{ todo.title }}</button>
+            </li>
+          </ul>
+        </template>
+        <div v-else class="multitask-card__modal-projects">
+          <ProjectsPanel multitask-mode :is-task-pickable="isPickable" :on-pick-task="selectTask" />
+        </div>
       </div>
     </div>
 
@@ -254,6 +289,31 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
   padding: 1rem;
   gap: 0.75rem;
   text-align: center;
+  overflow-y: auto;
+}
+
+.multitask-card__modal-tabs {
+  display: flex;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.multitask-card__modal-tabs button {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  padding: 0.35rem 1rem;
+}
+
+.multitask-card__modal-tabs button.active {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border-color: var(--color-primary);
+}
+
+.multitask-card__modal-projects {
+  text-align: left;
 }
 
 .multitask-card__modal-header {

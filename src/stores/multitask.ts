@@ -4,8 +4,6 @@ import { useLocalStorage } from '../composables/useLocalStorage'
 import { useTodosStore } from './todos'
 import type { MultitaskCard } from '../types/multitask'
 
-export const DEFAULT_CAPACITY = 3
-
 function createId(): string {
   return crypto.randomUUID()
 }
@@ -14,8 +12,8 @@ export const useMultitaskStore = defineStore('multitask', () => {
   const todos = useTodosStore()
 
   const enabled = useLocalStorage<boolean>('openpomodoro.multitaskEnabled', false)
-  const capacity = useLocalStorage<number>('openpomodoro.multitaskCapacity', DEFAULT_CAPACITY)
   const cards = useLocalStorage<MultitaskCard[]>('openpomodoro.multitaskCards', [])
+  const capacityTipDismissed = useLocalStorage<boolean>('openpomodoro.multitaskTipDismissed', false)
 
   const assignedTaskIds = computed(() => {
     const ids = new Set<string>()
@@ -49,10 +47,6 @@ export const useMultitaskStore = defineStore('multitask', () => {
     card.taskId = null
   }
 
-  function setCapacity(n: number) {
-    capacity.value = Math.max(1, Math.round(n))
-  }
-
   function setEnabled(val: boolean) {
     enabled.value = val
   }
@@ -65,25 +59,29 @@ export const useMultitaskStore = defineStore('multitask', () => {
     }
   }
 
+  function dismissCapacityTip() {
+    capacityTipDismissed.value = true
+  }
+
   function reset() {
     enabled.value = false
-    capacity.value = DEFAULT_CAPACITY
     cards.value = []
+    capacityTipDismissed.value = false
   }
 
   return {
     enabled,
-    capacity,
     cards,
+    capacityTipDismissed,
     assignedTaskIds,
     addCard,
     removeCard,
     assignTask,
     clearCard,
     finishCard,
-    setCapacity,
     setEnabled,
     enableWithCurrentTask,
+    dismissCapacityTip,
     reset,
   }
 })

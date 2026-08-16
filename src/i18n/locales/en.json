@@ -8,7 +8,8 @@
     "exportTodo": "Export data",
     "importTodo": "Import data",
     "reset": "Reset",
-    "resetConfirm": "This will erase your to-do list and reset the pomodoro clock. Continue?"
+    "resetConfirm": "This will erase your to-do list and reset the pomodoro clock. Continue?",
+    "preferences": "Preferences"
   },
   "theme": {
     "label": "Theme",
@@ -108,9 +109,8 @@
     "noUnassigned": "No unassigned tasks."
   },
   "multitask": {
-    "toggleLabel": "AI Multitask",
-    "capacity": "Concurrent tasks I can handle",
-    "capacityHint": "Informational only — does not limit the cards below.",
+    "toggleLabel": "Multitask",
+    "capacityTip": "Tip: research on working memory suggests people can only really hold about four things in mind at once — piling on more tends to hurt focus rather than help it (Cowan, 2001, Behavioral and Brain Sciences).",
     "addCard": "Add card",
     "removeCard": "Remove card",
     "manageTasks": "Tasks",

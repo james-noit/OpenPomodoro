@@ -8,7 +8,8 @@
     "exportTodo": "Exportar datos",
     "importTodo": "Importar datos",
     "reset": "Reiniciar",
-    "resetConfirm": "Esto borrará tu lista de tareas y reiniciará el reloj pomodoro. ¿Continuar?"
+    "resetConfirm": "Esto borrará tu lista de tareas y reiniciará el reloj pomodoro. ¿Continuar?",
+    "preferences": "Preferencias"
   },
   "theme": {
     "label": "Tema",
@@ -108,9 +109,8 @@
     "noUnassigned": "No hay tareas sin asignar."
   },
   "multitask": {
-    "toggleLabel": "Multitarea IA",
-    "capacity": "Tareas simultáneas que puedo manejar",
-    "capacityHint": "Solo informativo: no limita las tarjetas de abajo.",
+    "toggleLabel": "Multitarea",
+    "capacityTip": "Consejo: la investigación sobre la memoria de trabajo sugiere que las personas solo pueden retener realmente unas cuatro cosas en mente a la vez — acumular más tiende a perjudicar el enfoque en vez de ayudarlo (Cowan, 2001, Behavioral and Brain Sciences).",
     "addCard": "Añadir tarjeta",
     "removeCard": "Eliminar tarjeta",
     "manageTasks": "Tareas",

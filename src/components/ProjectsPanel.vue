@@ -5,7 +5,11 @@ import { useProjectsStore } from '../stores/projects'
 import ProjectForm from './ProjectForm.vue'
 import ProjectTreeItem from './ProjectTreeItem.vue'
 
-const props = defineProps<{ multitaskMode?: boolean }>()
+const props = defineProps<{
+  multitaskMode?: boolean
+  isTaskPickable?: (todoId: string) => boolean
+  onPickTask?: (todoId: string) => void
+}>()
 
 const { t } = useI18n()
 const projects = useProjectsStore()
@@ -37,6 +41,8 @@ function createProject(data: { icon: string; name: string; description: string; 
         :key="project.id"
         :project="project"
         :multitask-mode="props.multitaskMode"
+        :is-task-pickable="props.isTaskPickable"
+        :on-pick-task="props.onPickTask"
       />
     </div>
   </div>

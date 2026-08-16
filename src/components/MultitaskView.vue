@@ -42,11 +42,6 @@ function capacityColorVar(count: number): string {
 }
 
 const borderColor = computed(() => capacityColorVar(multitask.cards.length))
-
-function onCapacityChange(event: Event) {
-  const value = Number((event.target as HTMLInputElement).value)
-  multitask.setCapacity(value)
-}
 </script>
 
 <template>
@@ -76,14 +71,21 @@ function onCapacityChange(event: Event) {
     </div>
 
     <div class="multitask-view__toolbar">
-      <label class="multitask-view__capacity">
-        {{ t('multitask.capacity') }}
-        <input type="number" min="1" :value="multitask.capacity" @change="onCapacityChange" />
-      </label>
-      <span class="multitask-view__capacity-hint">{{ t('multitask.capacityHint') }}</span>
       <div class="multitask-view__toolbar-actions">
         <MultitaskTaskDrawer />
       </div>
+    </div>
+
+    <div v-if="!multitask.capacityTipDismissed" class="multitask-view__tip">
+      <p>{{ t('multitask.capacityTip') }}</p>
+      <button
+        type="button"
+        class="multitask-view__tip-close"
+        :aria-label="t('todo.close')"
+        @click="multitask.dismissCapacityTip()"
+      >
+        ✕
+      </button>
     </div>
 
     <div class="multitask-view__grid">
@@ -186,33 +188,37 @@ function onCapacityChange(event: Event) {
   flex-wrap: wrap;
 }
 
-.multitask-view__capacity {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-}
-
-.multitask-view__capacity input {
-  width: 4rem;
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 0.3rem 0.5rem;
-}
-
-.multitask-view__capacity-hint {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-}
-
 .multitask-view__toolbar-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-left: auto;
+}
+
+.multitask-view__tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.multitask-view__tip p {
+  margin: 0;
+  flex: 1;
+}
+
+.multitask-view__tip-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  min-width: 1.75rem;
+  min-height: 1.75rem;
 }
 
 .multitask-view__grid {
