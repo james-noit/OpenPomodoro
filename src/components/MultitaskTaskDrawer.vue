@@ -6,6 +6,7 @@ import { useMultitaskStore } from '../stores/multitask'
 import TodoForm from './TodoForm.vue'
 import TodoFilters from './TodoFilters.vue'
 import CompletedTasksStack from './CompletedTasksStack.vue'
+import ProjectsPanel from './ProjectsPanel.vue'
 
 const { t } = useI18n()
 const todos = useTodosStore()
@@ -49,39 +50,63 @@ function assignToNewCard(taskId: string) {
         <button type="button" class="task-drawer__close" :aria-label="t('todo.close')" @click="close">✕</button>
       </div>
 
-      <TodoForm />
-
-      <div v-if="todos.todos.length" class="task-drawer__toolbar">
-        <TodoFilters />
-        <CompletedTasksStack v-if="todos.completedTodos.length" />
+      <div class="task-drawer__tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="todos.viewMode === 'all'"
+          :class="{ active: todos.viewMode === 'all' }"
+          @click="todos.setViewMode('all')"
+        >
+          {{ t('todo.viewAll') }}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="todos.viewMode === 'projects'"
+          :class="{ active: todos.viewMode === 'projects' }"
+          @click="todos.setViewMode('projects')"
+        >
+          {{ t('todo.viewProjects') }}
+        </button>
       </div>
 
-      <h4 class="task-drawer__pool-heading">{{ t('multitask.taskPool') }}</h4>
-      <p v-if="!todos.filteredTodos.length" class="task-drawer__empty">{{ t('todo.empty') }}</p>
-      <ul v-else class="task-drawer__pool">
-        <li v-for="todo in todos.filteredTodos" :key="todo.id" class="task-drawer__pool-item">
-          <div class="task-drawer__pool-content">
-            <span class="task-drawer__pool-title">{{ todo.title }}</span>
-            <div class="task-drawer__pool-badges">
-              <span class="badge" :class="`badge--${todo.importance}`">{{ t(`todo.${todo.importance}`) }}</span>
-              <span class="badge" :class="`badge--${todo.urgency}`">{{ t(`todo.${todo.urgency}`) }}</span>
+      <template v-if="todos.viewMode === 'all'">
+        <TodoForm />
+
+        <div v-if="todos.todos.length" class="task-drawer__toolbar">
+          <TodoFilters />
+          <CompletedTasksStack v-if="todos.completedTodos.length" />
+        </div>
+
+        <h4 class="task-drawer__pool-heading">{{ t('multitask.taskPool') }}</h4>
+        <p v-if="!todos.filteredTodos.length" class="task-drawer__empty">{{ t('todo.empty') }}</p>
+        <ul v-else class="task-drawer__pool">
+          <li v-for="todo in todos.filteredTodos" :key="todo.id" class="task-drawer__pool-item">
+            <div class="task-drawer__pool-content">
+              <span class="task-drawer__pool-title">{{ todo.title }}</span>
+              <div class="task-drawer__pool-badges">
+                <span class="badge" :class="`badge--${todo.importance}`">{{ t(`todo.${todo.importance}`) }}</span>
+                <span class="badge" :class="`badge--${todo.urgency}`">{{ t(`todo.${todo.urgency}`) }}</span>
+              </div>
             </div>
-          </div>
-          <span v-if="multitask.assignedTaskIds.has(todo.id)" class="task-drawer__pool-status">
-            {{ t('multitask.inGrid') }}
-          </span>
-          <button
-            v-else
-            type="button"
-            class="task-drawer__pool-assign"
-            :aria-label="t('multitask.assignToCard')"
-            :title="t('multitask.assignToCard')"
-            @click="assignToNewCard(todo.id)"
-          >
-            +
-          </button>
-        </li>
-      </ul>
+            <span v-if="multitask.assignedTaskIds.has(todo.id)" class="task-drawer__pool-status">
+              {{ t('multitask.inGrid') }}
+            </span>
+            <button
+              v-else
+              type="button"
+              class="task-drawer__pool-assign"
+              :aria-label="t('multitask.assignToCard')"
+              :title="t('multitask.assignToCard')"
+              @click="assignToNewCard(todo.id)"
+            >
+              +
+            </button>
+          </li>
+        </ul>
+      </template>
+      <ProjectsPanel v-else multitask-mode />
     </aside>
   </div>
 </template>
@@ -127,7 +152,10 @@ function assignToNewCard(taskId: string) {
   top: 0;
   right: 0;
   bottom: 0;
-  width: min(360px, 100vw);
+  left: 0;
+  width: 360px;
+  max-width: 100%;
+  margin-left: auto;
   background-color: var(--color-surface);
   border-left: 1px solid var(--color-border);
   z-index: 25;
@@ -165,6 +193,25 @@ function assignToNewCard(taskId: string) {
   border-radius: 4px;
   color: var(--color-text);
   padding: 0.2rem 0.5rem;
+}
+
+.task-drawer__tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.task-drawer__tabs button {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  padding: 0.35rem 1rem;
+}
+
+.task-drawer__tabs button.active {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border-color: var(--color-primary);
 }
 
 .task-drawer__toolbar {

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTodosStore } from '../stores/todos'
 import type { Priority } from '../types/todo'
 
+const props = defineProps<{ projectId?: string; milestoneId?: string }>()
 const { t } = useI18n()
 const todos = useTodosStore()
 
@@ -13,19 +14,28 @@ const urgency = ref<Priority>('medium')
 const tagsInput = ref('')
 const expanded = ref(false)
 const formEl = ref<HTMLFormElement | null>(null)
+const titleInputEl = ref<HTMLInputElement | null>(null)
 
-function submit() {
+async function submit() {
   const trimmed = title.value.trim()
   if (!trimmed) return
   const tags = tagsInput.value
     .split(',')
     .map((tag) => tag.trim())
     .filter(Boolean)
-  todos.addTodo({ title: trimmed, importance: importance.value, urgency: urgency.value, tags })
+  todos.addTodo({
+    title: trimmed,
+    importance: importance.value,
+    urgency: urgency.value,
+    tags,
+    projectId: props.projectId,
+    milestoneId: props.milestoneId,
+  })
   title.value = ''
   tagsInput.value = ''
   expanded.value = false
-  ;(document.activeElement as HTMLElement | null)?.blur()
+  await nextTick()
+  titleInputEl.value?.focus()
 }
 
 function onFocusOut(event: FocusEvent) {
@@ -45,6 +55,7 @@ function onFocusOut(event: FocusEvent) {
     @focusout="onFocusOut"
   >
     <input
+      ref="titleInputEl"
       v-model="title"
       type="text"
       class="todo-form__title"

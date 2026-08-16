@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useTodosStore } from '../stores/todos'
+import TaskProjectTag from './TaskProjectTag.vue'
 import type { Todo } from '../types/todo'
 
 const props = defineProps<{ todo: Todo; isFirst: boolean; isLast: boolean }>()
@@ -39,6 +40,7 @@ function onDragOver(event: DragEvent) {
         <span class="badge" :class="`badge--${props.todo.urgency}`">{{ t(`todo.${props.todo.urgency}`) }}</span>
         <span v-for="tag in props.todo.tags" :key="tag" class="badge badge--tag">{{ tag }}</span>
       </div>
+      <TaskProjectTag :todo="props.todo" />
     </div>
     <div class="todo-item__actions">
       <button
@@ -64,6 +66,7 @@ function onDragOver(event: DragEvent) {
 
 <style scoped>
 .todo-item {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
@@ -92,9 +95,14 @@ function onDragOver(event: DragEvent) {
 
 .todo-item__content {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+}
+
+.todo-item__title {
+  overflow-wrap: break-word;
 }
 
 .todo-item__badges {
@@ -132,11 +140,22 @@ function onDragOver(event: DragEvent) {
 }
 
 .todo-item__actions button {
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: 1px solid var(--color-border);
   border-radius: 4px;
   color: var(--color-text);
   padding: 0.2rem 0.5rem;
+}
+
+.todo-item input[type='checkbox'] {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
 }
 
 .todo-item__actions button:disabled {

@@ -5,12 +5,14 @@ import { useTodosStore } from '../stores/todos'
 import { useSettingsStore } from '../stores/settings'
 import { useMultitaskStore } from '../stores/multitask'
 import { useAdvanceHistoryStore } from '../stores/advanceHistory'
+import { useProjectsStore } from '../stores/projects'
 
 const { t } = useI18n()
 const todos = useTodosStore()
 const settings = useSettingsStore()
 const multitask = useMultitaskStore()
 const advanceHistory = useAdvanceHistoryStore()
+const projects = useProjectsStore()
 
 const open = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -24,7 +26,12 @@ function close() {
 }
 
 function exportTodo() {
-  const data = todos.exportTodos()
+  const data = {
+    version: 2,
+    todos: todos.todos,
+    projects: projects.projects,
+    milestones: projects.milestones,
+  }
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
@@ -47,7 +54,9 @@ async function onFileSelected(event: Event) {
   if (!file) return
   const text = await file.text()
   try {
-    todos.importTodos(JSON.parse(text))
+    const parsed = JSON.parse(text)
+    todos.importTodos({ version: 1, todos: parsed.todos ?? [] })
+    projects.importProjects({ projects: parsed.projects ?? [], milestones: parsed.milestones ?? [] })
   } catch (error) {
     console.error('Failed to import to-do file', error)
   }
@@ -60,6 +69,7 @@ function resetAll() {
     settings.reset()
     multitask.reset()
     advanceHistory.reset()
+    projects.reset()
   }
 }
 </script>

@@ -40,6 +40,46 @@
   color-scheme: dark;
 }
 
+[data-theme='japanese'] {
+  /* Japanese notebook writer - washi paper and sumi ink */
+  --color-bg: #f4efe4;
+  --color-surface: #faf6ec;
+  --color-surface-alt: #e8e0cc;
+  --color-text: #2b2b28;
+  --color-text-muted: #6b6355;
+  --color-border: #d8cdb0;
+  --color-primary: #b5343a;
+  --color-primary-contrast: #fdf6ec;
+  --color-low: #6b8e6b;
+  --color-medium: #c98a3a;
+  --color-high: #b5343a;
+  --color-capacity-safe: #6b8e6b;
+  --color-capacity-elevated: #c98a3a;
+  --color-capacity-high: #d9a441;
+  --color-capacity-critical: #b5343a;
+  color-scheme: light;
+}
+
+[data-theme='nordic'] {
+  /* Nordic grey - cool Nord-inspired palette */
+  --color-bg: #eceff4;
+  --color-surface: #ffffff;
+  --color-surface-alt: #e5e9f0;
+  --color-text: #2e3440;
+  --color-text-muted: #4c566a;
+  --color-border: #d8dee9;
+  --color-primary: #5e81ac;
+  --color-primary-contrast: #eceff4;
+  --color-low: #a3be8c;
+  --color-medium: #ebcb8b;
+  --color-high: #bf616a;
+  --color-capacity-safe: #a3be8c;
+  --color-capacity-elevated: #ebcb8b;
+  --color-capacity-high: #d08770;
+  --color-capacity-critical: #bf616a;
+  color-scheme: light;
+}
+
 * {
   box-sizing: border-box;
 }

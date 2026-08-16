@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { useLocalStorage } from '../composables/useLocalStorage'
 
-export type Theme = 'light' | 'dark'
+export type Theme = 'light' | 'dark' | 'japanese' | 'nordic'
 export type Language = 'en' | 'es'
 export type BellSoundId = 'digital' | 'classic' | 'siren' | 'buzzer'
 
@@ -10,15 +10,15 @@ export const DEFAULT_BREAK_MINUTES = 5
 export const DEFAULT_BELL_SOUND_ID: BellSoundId = 'classic'
 
 export const useSettingsStore = defineStore('settings', () => {
-  const theme = useLocalStorage<Theme>('openpomodoro.theme', 'dark')
+  const theme = useLocalStorage<Theme>('openpomodoro.theme', 'light')
   const language = useLocalStorage<Language>('openpomodoro.language', 'en')
   const focusMinutes = useLocalStorage<number>('openpomodoro.focusMinutes', DEFAULT_FOCUS_MINUTES)
   const breakMinutes = useLocalStorage<number>('openpomodoro.breakMinutes', DEFAULT_BREAK_MINUTES)
   const bellSound = useLocalStorage<boolean>('openpomodoro.bellSound', true)
   const bellSoundId = useLocalStorage<BellSoundId>('openpomodoro.bellSoundId', DEFAULT_BELL_SOUND_ID)
 
-  function toggleTheme() {
-    theme.value = theme.value === 'dark' ? 'light' : 'dark'
+  function setTheme(next: Theme) {
+    theme.value = next
   }
 
   function setLanguage(lang: Language) {
@@ -42,7 +42,7 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   function reset() {
-    theme.value = 'dark'
+    theme.value = 'light'
     language.value = 'en'
     focusMinutes.value = DEFAULT_FOCUS_MINUTES
     breakMinutes.value = DEFAULT_BREAK_MINUTES
@@ -57,7 +57,7 @@ export const useSettingsStore = defineStore('settings', () => {
     breakMinutes,
     bellSound,
     bellSoundId,
-    toggleTheme,
+    setTheme,
     setLanguage,
     setFocusMinutes,
     setBreakMinutes,

@@ -6,6 +6,7 @@ import { useClockStore } from '../stores/clock'
 import { useSettingsStore } from '../stores/settings'
 import MultitaskCard from './MultitaskCard.vue'
 import MultitaskTaskDrawer from './MultitaskTaskDrawer.vue'
+import SoundSettings from './SoundSettings.vue'
 
 const { t } = useI18n()
 const multitask = useMultitaskStore()
@@ -58,6 +59,7 @@ function onCapacityChange(event: Event) {
         <button type="button" :class="{ active: clock.mode === 'break' }" @click="clock.setMode('break')">
           {{ t('clock.break') }}
         </button>
+        <SoundSettings />
       </div>
       <span class="multitask-view__time">{{ formattedTime }}</span>
       <label class="multitask-view__duration">
@@ -81,13 +83,15 @@ function onCapacityChange(event: Event) {
       <span class="multitask-view__capacity-hint">{{ t('multitask.capacityHint') }}</span>
       <div class="multitask-view__toolbar-actions">
         <MultitaskTaskDrawer />
-        <button type="button" class="multitask-view__add" @click="multitask.addCard()">{{ t('multitask.addCard') }}</button>
       </div>
     </div>
 
-    <p v-if="!multitask.cards.length" class="multitask-view__empty">{{ t('multitask.emptyGrid') }}</p>
-    <div v-else class="multitask-view__grid">
+    <div class="multitask-view__grid">
       <MultitaskCard v-for="card in multitask.cards" :key="card.id" :card="card" :border-color="borderColor" />
+      <button type="button" class="multitask-view__add-card" :aria-label="t('multitask.addCard')" @click="multitask.addCard()">
+        <span class="multitask-view__add-card-icon" aria-hidden="true">+</span>
+        <span class="multitask-view__add-card-label">{{ t('multitask.addCard') }}</span>
+      </button>
     </div>
   </main>
 </template>
@@ -211,23 +215,52 @@ function onCapacityChange(event: Event) {
   margin-left: auto;
 }
 
-.multitask-view__add {
-  background-color: var(--color-primary);
-  color: var(--color-primary-contrast);
-  border: none;
-  border-radius: 6px;
-  padding: 0.4rem 1rem;
-}
-
-.multitask-view__empty {
-  color: var(--color-text-muted);
-  text-align: center;
-  padding: 2rem 0;
-}
-
 .multitask-view__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1rem;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.multitask-view__add-card {
+  container-type: inline-size;
+  flex: 1 1 0;
+  min-width: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: none;
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+  min-height: 140px;
+  color: var(--color-text-muted);
+}
+
+.multitask-view__add-card:hover {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.multitask-view__add-card-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.multitask-view__add-card-label {
+  font-size: 0.85rem;
+}
+
+@container (max-width: 90px) {
+  .multitask-view__add-card-label {
+    display: none;
+  }
+
+  .multitask-view__add-card-icon {
+    font-size: 1.4rem;
+  }
 }
 </style>

@@ -68,16 +68,27 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
       ✕
     </button>
 
-    <template v-if="task">
-      <span class="multitask-card__title">{{ task.title }}</span>
-      <div class="multitask-card__actions">
-        <button type="button" class="multitask-card__finish" @click="finishTask">{{ t('multitask.finish') }}</button>
-        <button type="button" class="multitask-card__clear" @click="clearTask">{{ t('multitask.clear') }}</button>
-      </div>
-    </template>
-    <template v-else>
-      <button type="button" class="multitask-card__select" @click="openTaskModal">{{ t('clock.selectTask') }}</button>
-    </template>
+    <div class="multitask-card__body">
+      <template v-if="task">
+        <span class="multitask-card__title">{{ task.title }}</span>
+        <div class="multitask-card__actions">
+          <button type="button" class="multitask-card__finish" @click="finishTask">
+            <span class="multitask-card__icon" aria-hidden="true">✓</span>
+            <span class="multitask-card__label">{{ t('multitask.finish') }}</span>
+          </button>
+          <button type="button" class="multitask-card__clear" @click="clearTask">
+            <span class="multitask-card__icon" aria-hidden="true">↺</span>
+            <span class="multitask-card__label">{{ t('multitask.clear') }}</span>
+          </button>
+        </div>
+      </template>
+      <template v-else>
+        <button type="button" class="multitask-card__select" @click="openTaskModal">
+          <span class="multitask-card__icon" aria-hidden="true">+</span>
+          <span class="multitask-card__label">{{ t('clock.selectTask') }}</span>
+        </button>
+      </template>
+    </div>
 
     <div v-if="taskModalOpen" class="multitask-card__overlay" @click.self="taskModalOpen = false">
       <div class="multitask-card__modal" role="dialog" aria-modal="true" :aria-label="t('clock.selectTask')">
@@ -101,17 +112,28 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
 <style scoped>
 .multitask-card {
   position: relative;
+  container-type: inline-size;
+  flex: 1 1 0;
+  min-width: 3.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.6rem;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-top: 4px solid var(--color-border);
   border-radius: 8px;
-  padding: 1.25rem 1rem 1rem;
+  padding: 1.25rem 0.75rem 0.85rem;
   min-height: 140px;
   text-align: center;
+}
+
+.multitask-card__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .multitask-card__remove {
@@ -132,13 +154,29 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
 }
 
 .multitask-card__title {
+  display: block;
+  width: 100%;
   font-size: 1rem;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .multitask-card__actions {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.multitask-card__finish,
+.multitask-card__clear,
+.multitask-card__select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .multitask-card__finish {
@@ -156,6 +194,41 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
   color: var(--color-text);
   border-radius: 6px;
   padding: 0.4rem 1rem;
+}
+
+@container (max-width: 150px) {
+  .multitask-card__title {
+    font-size: 0.8rem;
+  }
+
+  .multitask-card__actions {
+    flex-direction: column;
+  }
+
+  .multitask-card__finish,
+  .multitask-card__clear,
+  .multitask-card__select {
+    width: 100%;
+    justify-content: center;
+    padding: 0.3rem 0.4rem;
+    font-size: 0.75rem;
+  }
+}
+
+@container (max-width: 90px) {
+  .multitask-card__title {
+    font-size: 0.7rem;
+  }
+
+  .multitask-card__label {
+    display: none;
+  }
+
+  .multitask-card__finish,
+  .multitask-card__clear,
+  .multitask-card__select {
+    padding: 0.35rem;
+  }
 }
 
 .multitask-card__overlay {

@@ -3,8 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '../stores/settings'
 import { useTodosStore } from '../stores/todos'
-import { useClockStore, playSound } from '../stores/clock'
-import type { BellSoundId } from '../stores/settings'
+import { useClockStore } from '../stores/clock'
+import SoundSettings from './SoundSettings.vue'
 
 const { t } = useI18n()
 const settings = useSettingsStore()
@@ -40,15 +40,6 @@ function onDurationChange(event: Event) {
   else settings.setBreakMinutes(minutes)
 }
 
-const bellSounds: { id: BellSoundId }[] = [
-  { id: 'digital' },
-  { id: 'classic' },
-  { id: 'siren' },
-  { id: 'buzzer' },
-]
-
-const soundPanelOpen = ref(false)
-
 const taskModalOpen = ref(false)
 
 function openTaskModal() {
@@ -80,52 +71,7 @@ onMounted(() => {
       <button type="button" :class="{ active: clock.mode === 'break' }" @click="clock.setMode('break')">
         {{ t('clock.break') }}
       </button>
-      <div class="clock__bell-wrap">
-        <button
-          type="button"
-          class="clock__bell"
-          :class="{ 'clock__bell--muted': !settings.bellSound }"
-          :aria-label="t('clock.soundSettings')"
-          aria-haspopup="true"
-          :aria-expanded="soundPanelOpen"
-          @click="soundPanelOpen = !soundPanelOpen"
-        >
-          {{ settings.bellSound ? '🔔' : '🔕' }}
-        </button>
-        <div v-if="soundPanelOpen" class="clock__bell-overlay" @click="soundPanelOpen = false"></div>
-        <div v-if="soundPanelOpen" class="clock__bell-panel" role="dialog" :aria-label="t('clock.soundSettings')">
-          <label class="clock__bell-toggle">
-            <input
-              type="checkbox"
-              :checked="settings.bellSound"
-              @change="settings.setBellSound(($event.target as HTMLInputElement).checked)"
-            />
-            {{ settings.bellSound ? t('clock.bellOff') : t('clock.bellOn') }}
-          </label>
-          <ul class="clock__sound-list">
-            <li v-for="sound in bellSounds" :key="sound.id" class="clock__sound-item">
-              <label>
-                <input
-                  type="radio"
-                  name="bellSoundId"
-                  :value="sound.id"
-                  :checked="settings.bellSoundId === sound.id"
-                  @change="settings.setBellSoundId(sound.id)"
-                />
-                {{ t(`clock.sounds.${sound.id}`) }}
-              </label>
-              <button
-                type="button"
-                class="clock__sound-preview"
-                :aria-label="t('clock.preview')"
-                @click="playSound(sound.id)"
-              >
-                ▶
-              </button>
-            </li>
-          </ul>
-        </div>
-      </div>
+      <SoundSettings />
     </div>
 
     <div class="clock__dial">
@@ -234,103 +180,6 @@ onMounted(() => {
   background-color: var(--color-primary);
   color: var(--color-primary-contrast);
   border-color: var(--color-primary);
-}
-
-.clock__bell-wrap {
-  position: relative;
-  display: flex;
-}
-
-.clock__bell {
-  padding: 0.4rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: none;
-  outline: 2px solid #555;
-  color: var(--color-text);
-  background: linear-gradient(135deg, #f5e6d3, #e8d4c0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-  font-size: 1.2rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.clock__bell:hover {
-  filter: brightness(0.9);
-}
-
-.clock__bell--muted {
-  opacity: 0.5;
-}
-
-.clock__bell-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 19;
-}
-
-.clock__bell-panel {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 0.5rem;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  padding: 0.75rem;
-  min-width: 220px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  text-align: left;
-}
-
-.clock__bell-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--color-text);
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.clock__sound-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.clock__sound-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--color-text);
-}
-
-.clock__sound-item label {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.clock__sound-preview {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  color: var(--color-text);
-  padding: 0.1rem 0.5rem;
 }
 
 .clock__dial {

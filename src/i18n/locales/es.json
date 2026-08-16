@@ -5,14 +5,17 @@
   "menu": {
     "open": "Abrir menú",
     "file": "Archivo",
-    "exportTodo": "Exportar tareas",
-    "importTodo": "Importar tareas",
+    "exportTodo": "Exportar datos",
+    "importTodo": "Importar datos",
     "reset": "Reiniciar",
     "resetConfirm": "Esto borrará tu lista de tareas y reiniciará el reloj pomodoro. ¿Continuar?"
   },
   "theme": {
-    "toggleToLight": "Cambiar a tema claro",
-    "toggleToDark": "Cambiar a tema oscuro"
+    "label": "Tema",
+    "light": "Tema: Claro",
+    "dark": "Tema: Oscuro",
+    "japanese": "Tema: Cuaderno japonés",
+    "nordic": "Tema: Gris nórdico"
   },
   "language": {
     "label": "Idioma",
@@ -73,7 +76,36 @@
     "completedTasks": "Tareas completadas",
     "restore": "Restaurar",
     "noCompleted": "Aún no hay tareas completadas.",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "viewAll": "Todas las tareas",
+    "viewProjects": "Proyectos"
+  },
+  "projects": {
+    "title": "Proyectos",
+    "newProject": "Nuevo proyecto",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "deleteConfirm": "¿Eliminar este proyecto? Sus hitos se eliminarán y sus tareas volverán al banco de tareas sin asignar.",
+    "deleteMilestoneConfirm": "¿Eliminar este hito? Sus tareas volverán al banco de tareas sin asignar del proyecto.",
+    "icon": "Icono",
+    "name": "Nombre",
+    "namePlaceholder": "Nombre del proyecto",
+    "description": "Descripción",
+    "descriptionPlaceholder": "¿De qué trata este proyecto?",
+    "notes": "Notas",
+    "notesPlaceholder": "Notas libres...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "addMilestone": "Añadir hito",
+    "milestoneNamePlaceholder": "Nombre del hito",
+    "addTask": "Añadir tarea",
+    "pickExisting": "Añadir tarea existente",
+    "noMilestones": "Aún no hay hitos.",
+    "noMilestoneTasks": "Aún no hay tareas en este hito.",
+    "noProjects": "Aún no hay proyectos. Crea uno para organizar tus tareas en hitos.",
+    "unassign": "Quitar del hito",
+    "unassignedPool": "Tareas sin asignar",
+    "noUnassigned": "No hay tareas sin asignar."
   },
   "multitask": {
     "toggleLabel": "Multitarea IA",
@@ -81,7 +113,6 @@
     "capacityHint": "Solo informativo: no limita las tarjetas de abajo.",
     "addCard": "Añadir tarjeta",
     "removeCard": "Eliminar tarjeta",
-    "emptyGrid": "Aún no hay tarjetas. Añade una para empezar a multitarear.",
     "manageTasks": "Tareas",
     "taskPool": "Banco de tareas",
     "assignToCard": "Añadir como tarjeta nueva",

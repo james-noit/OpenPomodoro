@@ -1,48 +1,33 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useSettingsStore } from '../stores/settings'
+import { useSettingsStore, type Theme } from '../stores/settings'
 
 const { t } = useI18n()
 const settings = useSettingsStore()
 
-const isDark = computed(() => settings.theme === 'dark')
-const label = computed(() => (isDark.value ? t('theme.toggleToLight') : t('theme.toggleToDark')))
+function onChange(event: Event) {
+  settings.setTheme((event.target as HTMLSelectElement).value as Theme)
+}
 </script>
 
 <template>
-  <button type="button" class="theme-toggle" :aria-label="label" :title="label" @click="settings.toggleTheme">
-    <svg v-if="isDark" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-      <circle cx="12" cy="12" r="5" fill="currentColor" />
-      <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="12" y1="1" x2="12" y2="3" />
-        <line x1="12" y1="21" x2="12" y2="23" />
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-        <line x1="1" y1="12" x2="3" y2="12" />
-        <line x1="21" y1="12" x2="23" y2="12" />
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-      </g>
-    </svg>
-    <svg v-else viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-      <path fill="currentColor" d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z" />
-    </svg>
-  </button>
+  <label class="theme-selector">
+    <span class="visually-hidden">{{ t('theme.label') }}</span>
+    <select :value="settings.theme" @change="onChange">
+      <option value="light">{{ t('theme.light') }}</option>
+      <option value="dark">{{ t('theme.dark') }}</option>
+      <option value="japanese">{{ t('theme.japanese') }}</option>
+      <option value="nordic">{{ t('theme.nordic') }}</option>
+    </select>
+  </label>
 </template>
 
 <style scoped>
-.theme-toggle {
-  background: none;
-  border: none;
+.theme-selector select {
+  background-color: var(--color-surface);
   color: var(--color-text);
-  padding: 0.4rem;
-  display: flex;
-  align-items: center;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
-}
-
-.theme-toggle:hover {
-  background-color: var(--color-surface-alt);
+  padding: 0.3rem 0.5rem;
 }
 </style>

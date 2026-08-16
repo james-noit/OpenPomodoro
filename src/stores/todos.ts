@@ -13,6 +13,8 @@ function createId(): string {
   return crypto.randomUUID()
 }
 
+export type TodoViewMode = 'all' | 'projects'
+
 export const useTodosStore = defineStore('todos', () => {
   const todos = useLocalStorage<Todo[]>('openpomodoro.todos', [])
   const filters = useLocalStorage<TodoFilters>('openpomodoro.todoFilters', {
@@ -20,6 +22,7 @@ export const useTodosStore = defineStore('todos', () => {
     urgency: 'all',
     tag: 'all',
   })
+  const viewMode = useLocalStorage<TodoViewMode>('openpomodoro.todoViewMode', 'all')
 
   const allTags = computed(() => {
     const tags = new Set<string>()
@@ -44,6 +47,12 @@ export const useTodosStore = defineStore('todos', () => {
       .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
   })
 
+  const unassignedTodos = computed(() => {
+    return todos.value
+      .filter((todo) => !todo.done && !todo.projectId)
+      .sort((a, b) => a.order - b.order)
+  })
+
   const draggedId = ref<string | null>(null)
   const currentTaskId = useLocalStorage<string | null>('openpomodoro.currentTaskId', null)
 
@@ -56,7 +65,14 @@ export const useTodosStore = defineStore('todos', () => {
     currentTaskId.value = id
   }
 
-  function addTodo(input: { title: string; importance: Priority; urgency: Priority; tags: string[] }) {
+  function addTodo(input: {
+    title: string
+    importance: Priority
+    urgency: Priority
+    tags: string[]
+    projectId?: string
+    milestoneId?: string
+  }) {
     const maxOrder = todos.value.reduce((max, t) => Math.max(max, t.order), -1)
     todos.value.push({
       id: createId(),
@@ -67,7 +83,44 @@ export const useTodosStore = defineStore('todos', () => {
       done: false,
       order: maxOrder + 1,
       createdAt: Date.now(),
+      projectId: input.projectId,
+      milestoneId: input.milestoneId,
     })
+  }
+
+  function assignToMilestone(todoId: string, projectId: string, milestoneId: string) {
+    const todo = todos.value.find((t) => t.id === todoId)
+    if (!todo) return
+    todo.projectId = projectId
+    todo.milestoneId = milestoneId
+  }
+
+  function unassignFromProject(todoId: string) {
+    const todo = todos.value.find((t) => t.id === todoId)
+    if (!todo) return
+    todo.projectId = undefined
+    todo.milestoneId = undefined
+  }
+
+  function clearProjectRefs(projectId: string) {
+    for (const todo of todos.value) {
+      if (todo.projectId === projectId) {
+        todo.projectId = undefined
+        todo.milestoneId = undefined
+      }
+    }
+  }
+
+  function clearMilestoneRefs(milestoneId: string) {
+    for (const todo of todos.value) {
+      if (todo.milestoneId === milestoneId) {
+        todo.milestoneId = undefined
+      }
+    }
+  }
+
+  function setViewMode(mode: TodoViewMode) {
+    viewMode.value = mode
   }
 
   function removeTodo(id: string) {
@@ -142,14 +195,17 @@ export const useTodosStore = defineStore('todos', () => {
     todos.value = []
     filters.value = { importance: 'all', urgency: 'all', tag: 'all' }
     currentTaskId.value = null
+    viewMode.value = 'all'
   }
 
   return {
     todos,
     filters,
+    viewMode,
     allTags,
     filteredTodos,
     completedTodos,
+    unassignedTodos,
     draggedId,
     currentTaskId,
     currentTask,
@@ -161,7 +217,12 @@ export const useTodosStore = defineStore('todos', () => {
     dragOverTodo,
     endDrag,
     setFilters,
+    setViewMode,
     setCurrentTask,
+    assignToMilestone,
+    unassignFromProject,
+    clearProjectRefs,
+    clearMilestoneRefs,
     exportTodos,
     importTodos,
     reset,

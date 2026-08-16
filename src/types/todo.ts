@@ -10,6 +10,8 @@ export interface Todo {
   order: number
   createdAt: number
   completedAt?: number
+  projectId?: string
+  milestoneId?: string
 }
 
 export interface TodoExport {

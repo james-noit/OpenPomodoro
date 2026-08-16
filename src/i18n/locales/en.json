@@ -5,14 +5,17 @@
   "menu": {
     "open": "Open menu",
     "file": "File",
-    "exportTodo": "Export To-Do",
-    "importTodo": "Import To-Do",
+    "exportTodo": "Export data",
+    "importTodo": "Import data",
     "reset": "Reset",
     "resetConfirm": "This will erase your to-do list and reset the pomodoro clock. Continue?"
   },
   "theme": {
-    "toggleToLight": "Switch to light theme",
-    "toggleToDark": "Switch to dark theme"
+    "label": "Theme",
+    "light": "Theme: Light",
+    "dark": "Theme: Dark",
+    "japanese": "Theme: Japanese notebook",
+    "nordic": "Theme: Nordic grey"
   },
   "language": {
     "label": "Language",
@@ -73,7 +76,36 @@
     "completedTasks": "Completed tasks",
     "restore": "Restore",
     "noCompleted": "No completed tasks yet.",
-    "close": "Close"
+    "close": "Close",
+    "viewAll": "All tasks",
+    "viewProjects": "Projects"
+  },
+  "projects": {
+    "title": "Projects",
+    "newProject": "New project",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this project? Its milestones will be removed and its tasks will return to the unassigned pool.",
+    "deleteMilestoneConfirm": "Delete this milestone? Its tasks will return to the project's unassigned pool.",
+    "icon": "Icon",
+    "name": "Name",
+    "namePlaceholder": "Project name",
+    "description": "Description",
+    "descriptionPlaceholder": "What is this project about?",
+    "notes": "Notes",
+    "notesPlaceholder": "Free-form notes...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "addMilestone": "Add milestone",
+    "milestoneNamePlaceholder": "Milestone name",
+    "addTask": "Add task",
+    "pickExisting": "Add existing task",
+    "noMilestones": "No milestones yet.",
+    "noMilestoneTasks": "No tasks in this milestone yet.",
+    "noProjects": "No projects yet. Create one to organize your tasks into milestones.",
+    "unassign": "Remove from milestone",
+    "unassignedPool": "Unassigned tasks",
+    "noUnassigned": "No unassigned tasks."
   },
   "multitask": {
     "toggleLabel": "AI Multitask",
@@ -81,7 +113,6 @@
     "capacityHint": "Informational only — does not limit the cards below.",
     "addCard": "Add card",
     "removeCard": "Remove card",
-    "emptyGrid": "No cards yet. Add one to start multitasking.",
     "manageTasks": "Tasks",
     "taskPool": "Task pool",
     "assignToCard": "Add as new card",

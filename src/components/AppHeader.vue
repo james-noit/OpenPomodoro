@@ -27,10 +27,11 @@ const appVersion = __APP_VERSION__
 <style scoped>
 .app-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   background-color: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
 }
@@ -39,7 +40,19 @@ const appVersion = __APP_VERSION__
 .app-header__end {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.app-header__end {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+@media (min-width: 480px) {
+  .app-header {
+    padding: 0.5rem 1rem;
+  }
 }
 
 .app-header__title {
