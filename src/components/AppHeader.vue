@@ -15,6 +15,21 @@ const appVersion = __APP_VERSION__
       <span class="app-header__version">v{{ appVersion }}</span>
     </div>
     <div class="app-header__end">
+      <div class="app-header__support">
+        <span class="app-header__support-text">Enjoying it?</span>
+        <a
+          href="https://www.buymeacoffee.com/jamesnoitt"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="app-header__coffee-link"
+        >
+          <img
+            src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=jamesnoitt&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff"
+            alt="Buy me a coffee"
+            class="app-header__coffee-img"
+          />
+        </a>
+      </div>
       <MultitaskToggle />
     </div>
   </header>
@@ -73,5 +88,31 @@ const appVersion = __APP_VERSION__
 .app-header__version {
   font-size: 0.75rem;
   color: var(--color-text-muted);
+}
+
+.app-header__support {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-header__support-text {
+  font-family: 'Cookie', cursive;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.app-header__coffee-link {
+  display: flex;
+  align-items: center;
+}
+
+.app-header__coffee-img {
+  display: block;
+  height: 2.15rem;
+  width: auto;
+  border-radius: 4px;
 }
 </style>

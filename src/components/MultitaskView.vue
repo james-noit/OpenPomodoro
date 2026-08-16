@@ -77,7 +77,7 @@ const borderColor = computed(() => capacityColorVar(multitask.cards.length))
     </div>
 
     <div v-if="!multitask.capacityTipDismissed" class="multitask-view__tip">
-      <p>{{ t('multitask.capacityTip') }}</p>
+      <p><em>{{ t('multitask.capacityTip') }}</em></p>
       <button
         type="button"
         class="multitask-view__tip-close"

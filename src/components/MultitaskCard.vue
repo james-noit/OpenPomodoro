@@ -6,9 +6,9 @@ import { useMultitaskStore } from '../stores/multitask'
 import { useClockStore } from '../stores/clock'
 import { useAdvanceHistoryStore } from '../stores/advanceHistory'
 import AdvanceCheckPopover from './AdvanceCheckPopover.vue'
-import TodoFilters from './TodoFilters.vue'
 import ProjectsPanel from './ProjectsPanel.vue'
 import type { MultitaskCard, AdvanceProgress } from '../types/multitask'
+import type { Priority } from '../types/todo'
 
 const props = defineProps<{ card: MultitaskCard; borderColor: string }>()
 
@@ -22,17 +22,27 @@ const task = computed(() => todos.todos.find((todo) => todo.id === props.card.ta
 
 const taskModalOpen = ref(false)
 const pickTab = ref<'all' | 'projects'>('all')
-
-const pickableTasks = computed(() =>
-  todos.filteredTodos.filter((todo) => !multitask.assignedTaskIds.has(todo.id) || todo.id === props.card.taskId),
-)
+const pickImportance = ref<Priority | 'all'>('all')
+const pickUrgency = ref<Priority | 'all'>('all')
+const pickTag = ref<string>('all')
 
 function isPickable(todoId: string): boolean {
   return !multitask.assignedTaskIds.has(todoId) || todoId === props.card.taskId
 }
 
+const pickableTasks = computed(() =>
+  todos.todos
+    .filter((todo) => !todo.done && isPickable(todo.id))
+    .filter((todo) => pickImportance.value === 'all' || todo.importance === pickImportance.value)
+    .filter((todo) => pickUrgency.value === 'all' || todo.urgency === pickUrgency.value)
+    .filter((todo) => pickTag.value === 'all' || todo.tags.includes(pickTag.value)),
+)
+
 function openTaskModal() {
   pickTab.value = 'all'
+  pickImportance.value = 'all'
+  pickUrgency.value = 'all'
+  pickTag.value = 'all'
   taskModalOpen.value = true
 }
 
@@ -126,7 +136,33 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
         </div>
 
         <template v-if="pickTab === 'all'">
-          <TodoFilters />
+          <div class="multitask-card__modal-filters">
+            <label>
+              {{ t('todo.importance') }}
+              <select v-model="pickImportance">
+                <option value="all">{{ t('todo.filterAll') }}</option>
+                <option value="low">{{ t('todo.low') }}</option>
+                <option value="medium">{{ t('todo.medium') }}</option>
+                <option value="high">{{ t('todo.high') }}</option>
+              </select>
+            </label>
+            <label>
+              {{ t('todo.urgency') }}
+              <select v-model="pickUrgency">
+                <option value="all">{{ t('todo.filterAll') }}</option>
+                <option value="low">{{ t('todo.low') }}</option>
+                <option value="medium">{{ t('todo.medium') }}</option>
+                <option value="high">{{ t('todo.high') }}</option>
+              </select>
+            </label>
+            <label v-if="todos.allTags.length">
+              {{ t('todo.tags') }}
+              <select v-model="pickTag">
+                <option value="all">{{ t('todo.filterAll') }}</option>
+                <option v-for="tag in todos.allTags" :key="tag" :value="tag">{{ tag }}</option>
+              </select>
+            </label>
+          </div>
           <p v-if="!pickableTasks.length" class="multitask-card__modal-empty">{{ t('todo.empty') }}</p>
           <ul v-else class="multitask-card__task-list">
             <li v-for="todo in pickableTasks" :key="todo.id">
@@ -314,6 +350,30 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
 
 .multitask-card__modal-projects {
   text-align: left;
+}
+
+.multitask-card__modal-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  text-align: left;
+}
+
+.multitask-card__modal-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  flex: 1 1 100px;
+}
+
+.multitask-card__modal-filters select {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
 }
 
 .multitask-card__modal-header {
