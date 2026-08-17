@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useMultitaskStore } from '../stores/multitask'
 import { useClockStore } from '../stores/clock'
-import { useSettingsStore } from '../stores/settings'
+import { useSettingsStore, MIN_DURATION_SECONDS, MAX_FOCUS_SECONDS, MAX_BREAK_SECONDS } from '../stores/settings'
 import MultitaskCard from './MultitaskCard.vue'
 import MultitaskTaskDrawer from './MultitaskTaskDrawer.vue'
 import ClockSettings from './ClockSettings.vue'
@@ -19,20 +19,10 @@ const formattedTime = computed(() => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 })
 
-const focusPresets = [1, 5, 10, 15, 20, 25, 30, 45, 60, 90, 120, 180]
-const breakPresets = [1, 5, 10, 15, 20, 25, 30, 45, 60]
-
-const durationOptions = computed(() => {
-  const presets = clock.mode === 'focus' ? focusPresets : breakPresets
-  if (presets.includes(clock.durationMinutes)) return presets
-  return [...presets, clock.durationMinutes].sort((a, b) => a - b)
-})
-
-function onDurationChange(event: Event) {
-  const minutes = Number((event.target as HTMLSelectElement).value)
-  if (clock.mode === 'focus') settings.setFocusMinutes(minutes)
-  else settings.setBreakMinutes(minutes)
-}
+const currentDurationSeconds = computed(() => (clock.mode === 'focus' ? settings.focusSeconds : settings.breakSeconds))
+const maxDurationSeconds = computed(() => (clock.mode === 'focus' ? MAX_FOCUS_SECONDS : MAX_BREAK_SECONDS))
+const canDecreaseDuration = computed(() => !clock.running && currentDurationSeconds.value > MIN_DURATION_SECONDS)
+const canIncreaseDuration = computed(() => !clock.running && currentDurationSeconds.value < maxDurationSeconds.value)
 
 function capacityColorVar(count: number): string {
   if (count <= 2) return 'var(--color-capacity-safe)'
@@ -56,17 +46,90 @@ const borderColor = computed(() => capacityColorVar(multitask.cards.length))
         </button>
         <ClockSettings />
       </div>
-      <span class="multitask-view__time">{{ formattedTime }}</span>
-      <label class="multitask-view__duration">
-        {{ t('clock.duration') }}
-        <select :value="clock.durationMinutes" :disabled="clock.running" @change="onDurationChange">
-          <option v-for="m in durationOptions" :key="m" :value="m">{{ m }} {{ t('clock.minutes') }}</option>
-        </select>
-      </label>
+
+      <div class="multitask-view__time-group">
+        <div class="multitask-view__stepper" role="group" :aria-label="t('clock.adjustDuration')">
+          <button
+            type="button"
+            :disabled="!canDecreaseDuration"
+            :aria-label="t('clock.decreaseLarge')"
+            :title="t('clock.decreaseLarge')"
+            @click="clock.adjustDuration(-300)"
+          >
+            -5′
+          </button>
+          <button
+            type="button"
+            :disabled="!canDecreaseDuration"
+            :aria-label="t('clock.decreaseSmall')"
+            :title="t('clock.decreaseSmall')"
+            @click="clock.adjustDuration(-30)"
+          >
+            -30″
+          </button>
+        </div>
+        <span class="multitask-view__time">{{ formattedTime }}</span>
+        <div class="multitask-view__stepper" role="group" :aria-label="t('clock.adjustDuration')">
+          <button
+            type="button"
+            :disabled="!canIncreaseDuration"
+            :aria-label="t('clock.increaseSmall')"
+            :title="t('clock.increaseSmall')"
+            @click="clock.adjustDuration(30)"
+          >
+            +30″
+          </button>
+          <button
+            type="button"
+            :disabled="!canIncreaseDuration"
+            :aria-label="t('clock.increaseLarge')"
+            :title="t('clock.increaseLarge')"
+            @click="clock.adjustDuration(300)"
+          >
+            +5′
+          </button>
+        </div>
+      </div>
+
       <div class="multitask-view__controls">
-        <button type="button" v-if="!clock.running" @click="clock.start()">{{ t('clock.start') }}</button>
-        <button type="button" v-else @click="clock.pause()">{{ t('clock.pause') }}</button>
-        <button type="button" @click="clock.reset()">{{ t('clock.reset') }}</button>
+        <button
+          type="button"
+          v-if="!clock.running"
+          class="multitask-view__icon-button"
+          :aria-label="t('clock.start')"
+          :title="t('clock.start')"
+          @click="clock.start()"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path fill="currentColor" d="M8 5v14l11-7z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          v-else
+          class="multitask-view__icon-button"
+          :aria-label="t('clock.pause')"
+          :title="t('clock.pause')"
+          @click="clock.pause()"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path fill="currentColor" d="M6 5h4v14H6zM14 5h4v14h-4z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="multitask-view__icon-button multitask-view__icon-button--secondary"
+          :aria-label="t('clock.reset')"
+          :title="t('clock.reset')"
+          @click="clock.reset()"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 5V2L7 7l5 5V8c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
+            />
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -123,7 +186,9 @@ const borderColor = computed(() => capacityColorVar(multitask.cards.length))
 
 .multitask-view__mode {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  align-items: center;
 }
 
 .multitask-view__mode button {
@@ -140,26 +205,55 @@ const borderColor = computed(() => capacityColorVar(multitask.cards.length))
   border-color: var(--color-primary);
 }
 
+.multitask-view__time-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 auto;
+}
+
 .multitask-view__time {
   font-size: 1.5rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  min-width: 3.6rem;
+  text-align: center;
 }
 
-.multitask-view__duration {
+.multitask-view__stepper {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.multitask-view__stepper button {
+  min-width: 2.3rem;
+  height: 2.3rem;
+  padding: 0 0.35rem;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.85rem;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
   color: var(--color-text-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.multitask-view__duration select {
-  background-color: var(--color-surface);
+.multitask-view__stepper button:hover:not(:disabled) {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-primary);
   color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 0.3rem 0.5rem;
+}
+
+.multitask-view__stepper button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .multitask-view__controls {
@@ -168,15 +262,23 @@ const borderColor = computed(() => capacityColorVar(multitask.cards.length))
   margin-left: auto;
 }
 
-.multitask-view__controls button {
+.multitask-view__icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
   background-color: var(--color-primary);
   color: var(--color-primary-contrast);
   border: none;
-  border-radius: 6px;
-  padding: 0.4rem 1rem;
+  border-radius: 50%;
 }
 
-.multitask-view__controls button:last-child {
+.multitask-view__icon-button:hover {
+  filter: brightness(0.95);
+}
+
+.multitask-view__icon-button--secondary {
   background-color: var(--color-surface-alt);
   color: var(--color-text);
 }

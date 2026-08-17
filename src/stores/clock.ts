@@ -68,11 +68,17 @@ export const useClockStore = defineStore('clock', () => {
   let intervalId: ReturnType<typeof setInterval> | undefined
   let hasTicked = false
 
-  const durationMinutes = computed(() =>
-    mode.value === 'focus' ? settings.focusMinutes : settings.breakMinutes,
+  const durationSeconds = computed(() =>
+    mode.value === 'focus' ? settings.focusSeconds : settings.breakSeconds,
   )
-  const totalSeconds = computed(() => durationMinutes.value * 60)
+  const totalSeconds = computed(() => durationSeconds.value)
   const remainingSeconds = ref(totalSeconds.value)
+
+  function adjustDuration(deltaSeconds: number) {
+    if (running.value) return
+    if (mode.value === 'focus') settings.setFocusSeconds(settings.focusSeconds + deltaSeconds)
+    else settings.setBreakSeconds(settings.breakSeconds + deltaSeconds)
+  }
 
   watch([mode, totalSeconds], () => {
     if (!running.value) remainingSeconds.value = totalSeconds.value
@@ -155,7 +161,7 @@ export const useClockStore = defineStore('clock', () => {
     mode,
     running,
     remainingSeconds,
-    durationMinutes,
+    durationSeconds,
     totalSeconds,
     sessionModalOpen,
     lastFocusEndAt,
@@ -164,6 +170,7 @@ export const useClockStore = defineStore('clock', () => {
     pause,
     reset,
     setMode,
+    adjustDuration,
     startNextSession,
     dismissSessionModal,
   }

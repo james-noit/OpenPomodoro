@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTodosStore } from '../stores/todos'
 import { useMultitaskStore } from '../stores/multitask'
@@ -47,6 +47,12 @@ function openTaskModal() {
   pickUrgency.value = 'all'
   pickTag.value = 'all'
   taskModalOpen.value = true
+  multitask.cancelDissolve(props.card.id)
+}
+
+function closeTaskModal() {
+  taskModalOpen.value = false
+  multitask.scheduleDissolveIfEmpty(props.card.id)
 }
 
 function selectTask(id: string) {
@@ -61,6 +67,12 @@ function finishTask() {
 function clearTask() {
   multitask.clearCard(props.card.id)
 }
+
+const isDissolving = computed(() => props.card.taskId === null && !taskModalOpen.value)
+
+onMounted(() => {
+  if (props.card.taskId === null) openTaskModal()
+})
 
 const answeredForCurrentPhase = computed(() =>
   advanceHistory.records.some(
@@ -79,7 +91,11 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
 </script>
 
 <template>
-  <div class="multitask-card" :style="{ borderTopColor: borderColor }">
+  <div
+    class="multitask-card"
+    :class="{ 'multitask-card--dissolving': isDissolving }"
+    :style="{ borderTopColor: borderColor }"
+  >
     <button
       type="button"
       class="multitask-card__remove"
@@ -111,11 +127,11 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
       </template>
     </div>
 
-    <div v-if="taskModalOpen" class="multitask-card__overlay" @click.self="taskModalOpen = false">
+    <div v-if="taskModalOpen" class="multitask-card__overlay" @click.self="closeTaskModal">
       <div class="multitask-card__modal" role="dialog" aria-modal="true" :aria-label="t('clock.selectTask')">
         <div class="multitask-card__modal-header">
           <h3>{{ t('clock.selectTask') }}</h3>
-          <button type="button" class="multitask-card__modal-close" :aria-label="t('todo.close')" @click="taskModalOpen = false">✕</button>
+          <button type="button" class="multitask-card__modal-close" :aria-label="t('todo.close')" @click="closeTaskModal">✕</button>
         </div>
         <div class="multitask-card__modal-tabs" role="tablist">
           <button
@@ -202,6 +218,22 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
   padding: 1.25rem 0.75rem 0.85rem;
   min-height: 140px;
   text-align: center;
+}
+
+.multitask-card--dissolving {
+  animation: multitask-card-dissolve 5s ease-in forwards;
+}
+
+@keyframes multitask-card-dissolve {
+  0%,
+  35% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.15;
+    transform: scale(0.94);
+  }
 }
 
 .multitask-card__body {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useSettingsStore } from '../stores/settings'
+import { useSettingsStore, MIN_DURATION_SECONDS, MAX_FOCUS_SECONDS, MAX_BREAK_SECONDS } from '../stores/settings'
 import { useTodosStore } from '../stores/todos'
 import { useClockStore } from '../stores/clock'
 import ClockSettings from './ClockSettings.vue'
@@ -26,20 +26,10 @@ const formattedTime = computed(() => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 })
 
-const focusPresets = [1, 5, 10, 15, 20, 25, 30, 45, 60, 90, 120, 180]
-const breakPresets = [1, 5, 10, 15, 20, 25, 30, 45, 60]
-
-const durationOptions = computed(() => {
-  const presets = clock.mode === 'focus' ? focusPresets : breakPresets
-  if (presets.includes(clock.durationMinutes)) return presets
-  return [...presets, clock.durationMinutes].sort((a, b) => a - b)
-})
-
-function onDurationChange(event: Event) {
-  const minutes = Number((event.target as HTMLSelectElement).value)
-  if (clock.mode === 'focus') settings.setFocusMinutes(minutes)
-  else settings.setBreakMinutes(minutes)
-}
+const currentDurationSeconds = computed(() => (clock.mode === 'focus' ? settings.focusSeconds : settings.breakSeconds))
+const maxDurationSeconds = computed(() => (clock.mode === 'focus' ? MAX_FOCUS_SECONDS : MAX_BREAK_SECONDS))
+const canDecreaseDuration = computed(() => !clock.running && currentDurationSeconds.value > MIN_DURATION_SECONDS)
+const canIncreaseDuration = computed(() => !clock.running && currentDurationSeconds.value < maxDurationSeconds.value)
 
 const taskModalOpen = ref(false)
 
@@ -65,68 +55,150 @@ onMounted(() => {
 
 <template>
   <section class="clock">
-    <div class="clock__modes">
-      <button type="button" :class="{ active: clock.mode === 'focus' }" @click="clock.setMode('focus')">
-        {{ t('clock.focus') }}
-      </button>
-      <button type="button" :class="{ active: clock.mode === 'break' }" @click="clock.setMode('break')">
-        {{ t('clock.break') }}
-      </button>
-      <ClockSettings />
-    </div>
+    <div class="clock__area clock__area--clock">
+      <div class="clock__modes">
+        <button type="button" :class="{ active: clock.mode === 'focus' }" @click="clock.setMode('focus')">
+          {{ t('clock.focus') }}
+        </button>
+        <button type="button" :class="{ active: clock.mode === 'break' }" @click="clock.setMode('break')">
+          {{ t('clock.break') }}
+        </button>
+        <ClockSettings />
+      </div>
 
-    <div class="clock__dial" :class="{ 'clock__dial--boxes': settings.clockStyle === 'boxes' }">
-      <template v-if="settings.clockStyle === 'boxes'">
-        <BoxClock />
-        <span class="clock__time clock__time--boxes">{{ formattedTime }}</span>
-      </template>
-      <template v-else>
-        <svg viewBox="0 0 200 200" width="240" height="240">
-          <circle cx="100" cy="100" :r="radius" class="clock__track" fill="none" stroke-width="10" />
-          <circle
-            cx="100"
-            cy="100"
-            :r="radius"
-            class="clock__progress"
-            fill="none"
-            stroke-width="10"
-            stroke-linecap="round"
-            :stroke-dasharray="circumference"
-            :stroke-dashoffset="dashOffset"
-            transform="rotate(-90 100 100)"
-          />
-        </svg>
-        <span class="clock__time">{{ formattedTime }}</span>
-      </template>
-    </div>
-
-    <div class="clock__task">
-      <template v-if="todos.currentTask">
-        <span class="clock__task-label">{{ t('clock.currentTask') }}</span>
-        <span class="clock__task-title">{{ todos.currentTask.title }}</span>
-        <div class="clock__task-actions">
-          <button type="button" class="clock__task-finish" @click="finishTask">{{ t('clock.finished') }}</button>
-          <button type="button" class="clock__task-change" @click="openTaskModal">{{ t('clock.changeTask') }}</button>
+      <div class="clock__main">
+        <div class="clock__dial" :class="{ 'clock__dial--boxes': settings.clockStyle === 'boxes' }">
+          <template v-if="settings.clockStyle === 'boxes'">
+            <BoxClock />
+          </template>
+          <template v-else>
+            <svg viewBox="0 0 200 200" width="240" height="240">
+              <circle cx="100" cy="100" :r="radius" class="clock__track" fill="none" stroke-width="10" />
+              <circle
+                cx="100"
+                cy="100"
+                :r="radius"
+                class="clock__progress"
+                fill="none"
+                stroke-width="10"
+                stroke-linecap="round"
+                :stroke-dasharray="circumference"
+                :stroke-dashoffset="dashOffset"
+                transform="rotate(-90 100 100)"
+              />
+            </svg>
+          </template>
         </div>
-      </template>
-      <template v-else>
-        <button type="button" class="clock__task-select" @click="openTaskModal">{{ t('clock.selectTask') }}</button>
-      </template>
+
+        <div class="clock__time-row">
+          <div class="clock__stepper" role="group" :aria-label="t('clock.adjustDuration')">
+            <button
+              type="button"
+              class="clock__stepper-btn"
+              :disabled="!canDecreaseDuration"
+              :aria-label="t('clock.decreaseLarge')"
+              :title="t('clock.decreaseLarge')"
+              @click="clock.adjustDuration(-300)"
+            >
+              -5′
+            </button>
+            <button
+              type="button"
+              class="clock__stepper-btn"
+              :disabled="!canDecreaseDuration"
+              :aria-label="t('clock.decreaseSmall')"
+              :title="t('clock.decreaseSmall')"
+              @click="clock.adjustDuration(-30)"
+            >
+              -30″
+            </button>
+          </div>
+
+          <span class="clock__time">{{ formattedTime }}</span>
+
+          <div class="clock__stepper" role="group" :aria-label="t('clock.adjustDuration')">
+            <button
+              type="button"
+              class="clock__stepper-btn"
+              :disabled="!canIncreaseDuration"
+              :aria-label="t('clock.increaseSmall')"
+              :title="t('clock.increaseSmall')"
+              @click="clock.adjustDuration(30)"
+            >
+              +30″
+            </button>
+            <button
+              type="button"
+              class="clock__stepper-btn"
+              :disabled="!canIncreaseDuration"
+              :aria-label="t('clock.increaseLarge')"
+              :title="t('clock.increaseLarge')"
+              @click="clock.adjustDuration(300)"
+            >
+              +5′
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="clock__controls">
+        <button
+          type="button"
+          v-if="!clock.running"
+          class="clock__icon-button"
+          :aria-label="t('clock.start')"
+          :title="t('clock.start')"
+          @click="clock.start()"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path fill="currentColor" d="M8 5v14l11-7z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          v-else
+          class="clock__icon-button"
+          :aria-label="t('clock.pause')"
+          :title="t('clock.pause')"
+          @click="clock.pause()"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path fill="currentColor" d="M6 5h4v14H6zM14 5h4v14h-4z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="clock__icon-button clock__icon-button--secondary"
+          :aria-label="t('clock.reset')"
+          :title="t('clock.reset')"
+          @click="clock.reset()"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 5V2L7 7l5 5V8c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"
+            />
+          </svg>
+        </button>
+      </div>
     </div>
 
-    <div class="clock__duration">
-      <label>
-        {{ t('clock.duration') }}
-        <select :value="clock.durationMinutes" :disabled="clock.running" @change="onDurationChange">
-          <option v-for="m in durationOptions" :key="m" :value="m">{{ m }} {{ t('clock.minutes') }}</option>
-        </select>
-      </label>
-    </div>
-
-    <div class="clock__controls">
-      <button type="button" v-if="!clock.running" @click="clock.start()">{{ t('clock.start') }}</button>
-      <button type="button" v-else @click="clock.pause()">{{ t('clock.pause') }}</button>
-      <button type="button" @click="clock.reset()">{{ t('clock.reset') }}</button>
+    <div class="clock__area clock__area--task">
+      <div class="clock__task" :class="{ 'clock__task--empty': !todos.currentTask }">
+        <template v-if="todos.currentTask">
+          <div class="clock__task-info">
+            <span class="clock__task-label">{{ t('clock.currentTask') }}</span>
+            <span class="clock__task-title">{{ todos.currentTask.title }}</span>
+          </div>
+          <div class="clock__task-actions">
+            <button type="button" class="clock__task-finish" @click="finishTask">{{ t('clock.finished') }}</button>
+            <button type="button" class="clock__task-change" @click="openTaskModal">{{ t('clock.changeTask') }}</button>
+          </div>
+        </template>
+        <template v-else>
+          <button type="button" class="clock__task-select" @click="openTaskModal">{{ t('clock.selectTask') }}</button>
+        </template>
+      </div>
     </div>
 
     <div v-if="taskModalOpen" class="clock__overlay" @click.self="taskModalOpen = false">
@@ -171,8 +243,10 @@ onMounted(() => {
 
 .clock__modes {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
+  width: 100%;
 }
 
 .clock__modes button {
@@ -189,16 +263,69 @@ onMounted(() => {
   border-color: var(--color-primary);
 }
 
-.clock__dial {
-  position: relative;
+.clock__area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 1.1rem;
+}
+
+.clock__main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.clock__time-row {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
 }
 
-.clock__dial--boxes {
-  flex-direction: column;
-  gap: 0.75rem;
+.clock__stepper {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.clock__stepper-btn {
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.clock__stepper-btn:hover:not(:disabled) {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.clock__stepper-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.clock__dial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .clock__track {
@@ -211,38 +338,9 @@ onMounted(() => {
 }
 
 .clock__time {
-  position: absolute;
   font-size: 2.5rem;
   font-weight: 600;
-}
-
-.clock__time--boxes {
-  position: static;
-  font-size: 1.75rem;
-}
-
-@media (max-width: 799px) {
-  .clock {
-    padding: 1rem 0.75rem;
-    gap: 0.6rem;
-  }
-
-  .clock__dial svg {
-    width: 160px;
-    height: 160px;
-  }
-
-  .clock__time {
-    font-size: 1.75rem;
-  }
-
-  .clock__dial--boxes {
-    gap: 0.4rem;
-  }
-
-  .clock__time--boxes {
-    font-size: 1.3rem;
-  }
+  font-variant-numeric: tabular-nums;
 }
 
 .clock__task {
@@ -252,6 +350,13 @@ onMounted(() => {
   gap: 0.5rem;
   text-align: center;
   width: 100%;
+}
+
+.clock__task-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
 }
 
 .clock__task-label {
@@ -269,6 +374,7 @@ onMounted(() => {
 .clock__task-actions {
   display: flex;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .clock__task-finish {
@@ -288,44 +394,99 @@ onMounted(() => {
   padding: 0.4rem 1rem;
 }
 
-.clock__duration {
-  width: 100%;
-  max-width: 240px;
-  text-align: center;
-}
-
-.clock__duration label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--color-text-muted);
-}
-
-.clock__duration select {
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 0.4rem 0.6rem;
-}
-
 .clock__controls {
   display: flex;
   gap: 0.75rem;
 }
 
-.clock__controls button {
+.clock__icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
   background-color: var(--color-primary);
   color: var(--color-primary-contrast);
   border: none;
-  border-radius: 6px;
-  padding: 0.5rem 1.25rem;
+  border-radius: 50%;
 }
 
-.clock__controls button:last-child {
+.clock__icon-button:hover {
+  filter: brightness(0.95);
+}
+
+.clock__icon-button--secondary {
   background-color: var(--color-surface-alt);
   color: var(--color-text);
+}
+
+.clock__area--task {
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+}
+
+@media (max-width: 480px) {
+  .clock__main {
+    gap: 0.35rem;
+  }
+
+  .clock__stepper-btn {
+    min-width: 2.1rem;
+    height: 2.1rem;
+    padding: 0 0.3rem;
+    font-size: 0.6rem;
+  }
+}
+
+@media (max-width: 799px) {
+  .clock {
+    padding: 1rem 0.75rem;
+    gap: 0.6rem;
+  }
+
+  .clock__area {
+    gap: 0.6rem;
+  }
+
+  .clock__area--task {
+    padding-top: 0.6rem;
+  }
+
+  .clock__dial svg {
+    width: 120px;
+    height: 120px;
+  }
+
+  .clock__time {
+    font-size: 1.4rem;
+  }
+
+  .clock__dial--boxes {
+    max-width: 80vw;
+    overflow-x: auto;
+  }
+
+  .clock__task {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+    gap: 0.75rem;
+  }
+
+  .clock__task--empty {
+    justify-content: center;
+  }
+
+  .clock__task-info {
+    text-align: left;
+  }
+
+  .clock__task-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .clock__overlay {
