@@ -1,23 +1,32 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTodosStore } from '../stores/todos'
 import { useSettingsStore } from '../stores/settings'
 import { useMultitaskStore } from '../stores/multitask'
+import { useViewStore, type AppView } from '../stores/view'
 import { useAdvanceHistoryStore } from '../stores/advanceHistory'
 import { useProjectsStore } from '../stores/projects'
 import LanguageSelector from './LanguageSelector.vue'
 import ThemeToggle from './ThemeToggle.vue'
 
+const RESET_PHRASE = 'confirm reset'
+
 const { t } = useI18n()
 const todos = useTodosStore()
 const settings = useSettingsStore()
 const multitask = useMultitaskStore()
+const view = useViewStore()
 const advanceHistory = useAdvanceHistoryStore()
 const projects = useProjectsStore()
 
 const open = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
+const isDev = import.meta.env.DEV
+
+const resetModalOpen = ref(false)
+const resetConfirmText = ref('')
+const resetConfirmValid = computed(() => resetConfirmText.value.trim().toLowerCase() === RESET_PHRASE)
 
 function toggle() {
   open.value = !open.value
@@ -25,6 +34,11 @@ function toggle() {
 
 function close() {
   open.value = false
+}
+
+function goToView(next: AppView) {
+  view.setView(next)
+  close()
 }
 
 function exportTodo() {
@@ -64,15 +78,34 @@ async function onFileSelected(event: Event) {
   }
 }
 
-function resetAll() {
+function openResetModal() {
   close()
-  if (window.confirm(t('menu.resetConfirm'))) {
-    todos.reset()
-    settings.reset()
-    multitask.reset()
-    advanceHistory.reset()
-    projects.reset()
-  }
+  resetConfirmText.value = ''
+  resetModalOpen.value = true
+}
+
+function cancelReset() {
+  resetModalOpen.value = false
+  resetConfirmText.value = ''
+}
+
+function confirmReset() {
+  if (!resetConfirmValid.value) return
+  todos.reset()
+  settings.reset()
+  multitask.reset()
+  view.reset()
+  advanceHistory.reset()
+  projects.reset()
+  resetModalOpen.value = false
+  resetConfirmText.value = ''
+}
+
+async function seedMockData() {
+  close()
+  if (!isDev) return
+  const { seedMockData: seed } = await import('../dev/mockData')
+  seed()
 }
 </script>
 
@@ -92,6 +125,39 @@ function resetAll() {
     </button>
     <div v-if="open" class="app-menu__panel" role="menu">
       <div class="app-menu__group">
+        <span class="app-menu__group-label">{{ t('menu.views') }}</span>
+        <button
+          type="button"
+          role="menuitem"
+          class="app-menu__view"
+          :class="{ 'app-menu__view--active': view.current === 'pomodoro' }"
+          :aria-current="view.current === 'pomodoro'"
+          @click="goToView('pomodoro')"
+        >
+          <svg class="app-menu__view-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2" />
+            <path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          {{ t('menu.pomodoro') }}
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          class="app-menu__view"
+          :class="{ 'app-menu__view--active': view.current === 'eisenhower' }"
+          :aria-current="view.current === 'eisenhower'"
+          @click="goToView('eisenhower')"
+        >
+          <svg class="app-menu__view-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <rect x="3" y="3" width="8" height="8" rx="1.5" fill="currentColor" />
+            <rect x="13" y="3" width="8" height="8" rx="1.5" fill="currentColor" opacity="0.55" />
+            <rect x="3" y="13" width="8" height="8" rx="1.5" fill="currentColor" opacity="0.55" />
+            <rect x="13" y="13" width="8" height="8" rx="1.5" fill="currentColor" opacity="0.3" />
+          </svg>
+          {{ t('menu.eisenhower') }}
+        </button>
+      </div>
+      <div class="app-menu__group">
         <span class="app-menu__group-label">{{ t('menu.file') }}</span>
         <button type="button" role="menuitem" @click="exportTodo">{{ t('menu.exportTodo') }}</button>
         <button type="button" role="menuitem" @click="importTodo">{{ t('menu.importTodo') }}</button>
@@ -106,14 +172,43 @@ function resetAll() {
           <span>{{ t('theme.label') }}</span>
           <ThemeToggle />
         </div>
-      </div>
-      <div class="app-menu__group">
-        <button type="button" role="menuitem" class="app-menu__danger" @click="resetAll">
+        <button type="button" role="menuitem" class="app-menu__danger" @click="openResetModal">
           {{ t('menu.reset') }}
         </button>
       </div>
+      <div v-if="isDev" class="app-menu__group">
+        <span class="app-menu__group-label">{{ t('menu.developer') }}</span>
+        <button type="button" role="menuitem" @click="seedMockData">{{ t('menu.seedMockData') }}</button>
+      </div>
     </div>
     <input ref="fileInput" type="file" accept=".json,application/json" class="visually-hidden" @change="onFileSelected" />
+
+    <div v-if="resetModalOpen" class="app-menu__reset-overlay" @click.self="cancelReset">
+      <div class="app-menu__reset-modal" role="dialog" aria-modal="true" :aria-label="t('menu.reset')">
+        <h3 class="app-menu__reset-title">{{ t('menu.reset') }}</h3>
+        <p>{{ t('menu.resetWarning') }}</p>
+        <p class="app-menu__reset-instruction">{{ t('menu.resetInstruction', { phrase: RESET_PHRASE }) }}</p>
+        <input
+          v-model="resetConfirmText"
+          type="text"
+          class="app-menu__reset-input"
+          :placeholder="RESET_PHRASE"
+          autocomplete="off"
+          @keydown.enter="confirmReset"
+        />
+        <div class="app-menu__reset-actions">
+          <button type="button" class="app-menu__reset-cancel" @click="cancelReset">{{ t('menu.cancel') }}</button>
+          <button
+            type="button"
+            class="app-menu__reset-confirm"
+            :disabled="!resetConfirmValid"
+            @click="confirmReset"
+          >
+            {{ t('menu.reset') }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -181,6 +276,26 @@ function resetAll() {
   background-color: var(--color-surface-alt);
 }
 
+.app-menu__view {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-menu__view-icon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.app-menu__view--active {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.app-menu__view--active .app-menu__view-icon {
+  color: var(--color-primary);
+}
+
 .app-menu__danger {
   color: var(--color-high);
 }
@@ -193,5 +308,80 @@ function resetAll() {
   padding: 0.4rem 1rem;
   font-size: 0.85rem;
   color: var(--color-text);
+}
+
+.app-menu__reset-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  padding: 1rem;
+}
+
+.app-menu__reset-modal {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.25rem;
+}
+
+.app-menu__reset-title {
+  margin: 0;
+  color: var(--color-high);
+}
+
+.app-menu__reset-modal p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.app-menu__reset-instruction {
+  color: var(--color-text-muted) !important;
+}
+
+.app-menu__reset-input {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.5rem 0.6rem;
+}
+
+.app-menu__reset-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.app-menu__reset-actions button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+}
+
+.app-menu__reset-cancel {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.app-menu__reset-confirm {
+  background-color: var(--color-high);
+  border: none;
+  color: #fff;
+}
+
+.app-menu__reset-confirm:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 </style>

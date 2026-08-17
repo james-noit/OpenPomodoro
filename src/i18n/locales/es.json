@@ -7,9 +7,16 @@
     "file": "Archivo",
     "exportTodo": "Exportar datos",
     "importTodo": "Importar datos",
+    "views": "Vistas",
+    "pomodoro": "Pomodoro",
+    "eisenhower": "Eisenhower",
     "reset": "Reiniciar",
-    "resetConfirm": "Esto borrará tu lista de tareas y reiniciará el reloj pomodoro. ¿Continuar?",
-    "preferences": "Preferencias"
+    "resetWarning": "Esto borrará tu lista de tareas, proyectos y ajustes, y reiniciará el reloj pomodoro.",
+    "resetInstruction": "Escribe \"{phrase}\" abajo para confirmar.",
+    "cancel": "Cancelar",
+    "preferences": "Preferencias",
+    "developer": "Desarrollo",
+    "seedMockData": "Cargar datos de prueba"
   },
   "theme": {
     "label": "Tema",
@@ -33,13 +40,23 @@
     "duration": "Duración",
     "bellOn": "Activar sonido de campana",
     "bellOff": "Desactivar sonido de campana",
-    "soundSettings": "Ajustes de sonido",
+    "settings": "Ajustes",
+    "soundSettings": "Sonido",
     "preview": "Vista previa",
     "sounds": {
       "digital": "Digital",
       "classic": "Clásico",
       "siren": "Sirena",
       "buzzer": "Zumbador"
+    },
+    "clockStyle": "Estilo de reloj",
+    "clockStyles": {
+      "boxes": "Cajas",
+      "ring": "Anillo"
+    },
+    "boxOrders": {
+      "sequential": "Secuencial",
+      "random": "Aleatorio"
     },
     "currentTask": "Tarea actual",
     "selectTask": "Seleccionar tarea",
@@ -70,8 +87,6 @@
     "medium": "Media",
     "high": "Alta",
     "empty": "Aún no hay tareas.",
-    "moveUp": "Subir",
-    "moveDown": "Bajar",
     "delete": "Eliminar",
     "dragHandle": "Arrastrar para reordenar",
     "completedTasks": "Tareas completadas",
@@ -125,5 +140,20 @@
       "moving": "> Avanzando",
       "moving-fast": ">> ¡Avanzando rápido!"
     }
+  },
+  "eisenhower": {
+    "title": "Matriz de Eisenhower",
+    "doFirst": "Hacer primero",
+    "doFirstHint": "Importante y urgente",
+    "schedule": "Planificar",
+    "scheduleHint": "Importante y no urgente",
+    "delegate": "Delegar",
+    "delegateHint": "No importante y urgente",
+    "eliminate": "Eliminar",
+    "eliminateHint": "No importante y no urgente",
+    "empty": "Nada por aquí.",
+    "axisUrgent": "Urgente",
+    "axisNotUrgent": "No urgente",
+    "axisImportant": "Importante"
   }
 }

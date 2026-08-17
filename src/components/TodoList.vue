@@ -42,15 +42,13 @@ const todos = useTodosStore()
         <CompletedTasksStack v-if="todos.completedTodos.length" />
       </div>
       <p v-if="!todos.filteredTodos.length" class="todo-list__empty">{{ t('todo.empty') }}</p>
-      <ul v-else class="todo-list__items">
+      <TransitionGroup v-else tag="ul" name="task-toss" class="todo-list__items">
         <TodoItem
-          v-for="(todo, index) in todos.filteredTodos"
+          v-for="todo in todos.filteredTodos"
           :key="todo.id"
           :todo="todo"
-          :is-first="index === 0"
-          :is-last="index === todos.filteredTodos.length - 1"
         />
-      </ul>
+      </TransitionGroup>
     </template>
     <ProjectsPanel v-else />
   </section>
@@ -94,6 +92,7 @@ const todos = useTodosStore()
 }
 
 .todo-list__items {
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -104,5 +103,29 @@ const todos = useTodosStore()
 
 .todo-list__empty {
   color: var(--color-text-muted);
+}
+
+.task-toss-move {
+  transition: transform 0.35s ease;
+}
+
+.task-toss-enter-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.task-toss-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.task-toss-leave-active {
+  transition: opacity 0.45s cubic-bezier(0.55, 0, 1, 0.45), transform 0.45s cubic-bezier(0.55, 0, 1, 0.45);
+  position: absolute;
+  width: 100%;
+}
+
+.task-toss-leave-to {
+  opacity: 0;
+  transform: translateX(70px) rotate(14deg) scale(0.85);
 }
 </style>

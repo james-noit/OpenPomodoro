@@ -15,6 +15,8 @@ function createId(): string {
 
 export type TodoViewMode = 'all' | 'projects'
 
+const PRIORITY_RANK: Record<Priority, number> = { high: 0, medium: 1, low: 2 }
+
 export const useTodosStore = defineStore('todos', () => {
   const todos = useLocalStorage<Todo[]>('openpomodoro.todos', [])
   const filters = useLocalStorage<TodoFilters>('openpomodoro.todoFilters', {
@@ -23,6 +25,21 @@ export const useTodosStore = defineStore('todos', () => {
     tag: 'all',
   })
   const viewMode = useLocalStorage<TodoViewMode>('openpomodoro.todoViewMode', 'all')
+  const hasCustomOrder = useLocalStorage<boolean>('openpomodoro.todosCustomOrder', false)
+
+  function sortTasks(list: Todo[]): Todo[] {
+    const sorted = [...list]
+    if (hasCustomOrder.value) {
+      return sorted.sort((a, b) => a.order - b.order)
+    }
+    return sorted.sort((a, b) => {
+      const importanceDiff = PRIORITY_RANK[a.importance] - PRIORITY_RANK[b.importance]
+      if (importanceDiff !== 0) return importanceDiff
+      const urgencyDiff = PRIORITY_RANK[a.urgency] - PRIORITY_RANK[b.urgency]
+      if (urgencyDiff !== 0) return urgencyDiff
+      return a.order - b.order
+    })
+  }
 
   const allTags = computed(() => {
     const tags = new Set<string>()
@@ -33,12 +50,13 @@ export const useTodosStore = defineStore('todos', () => {
   })
 
   const filteredTodos = computed(() => {
-    return todos.value
-      .filter((todo) => !todo.done)
-      .filter((todo) => filters.value.importance === 'all' || todo.importance === filters.value.importance)
-      .filter((todo) => filters.value.urgency === 'all' || todo.urgency === filters.value.urgency)
-      .filter((todo) => filters.value.tag === 'all' || todo.tags.includes(filters.value.tag))
-      .sort((a, b) => a.order - b.order)
+    return sortTasks(
+      todos.value
+        .filter((todo) => !todo.done)
+        .filter((todo) => filters.value.importance === 'all' || todo.importance === filters.value.importance)
+        .filter((todo) => filters.value.urgency === 'all' || todo.urgency === filters.value.urgency)
+        .filter((todo) => filters.value.tag === 'all' || todo.tags.includes(filters.value.tag)),
+    )
   })
 
   const completedTodos = computed(() => {
@@ -48,9 +66,7 @@ export const useTodosStore = defineStore('todos', () => {
   })
 
   const unassignedTodos = computed(() => {
-    return todos.value
-      .filter((todo) => !todo.done && !todo.projectId)
-      .sort((a, b) => a.order - b.order)
+    return sortTasks(todos.value.filter((todo) => !todo.done && !todo.projectId))
   })
 
   const draggedId = ref<string | null>(null)
@@ -128,6 +144,15 @@ export const useTodosStore = defineStore('todos', () => {
     if (currentTaskId.value === id) currentTaskId.value = null
   }
 
+  function updateTodo(
+    id: string,
+    patch: Partial<Pick<Todo, 'title' | 'importance' | 'urgency' | 'tags'>>,
+  ) {
+    const todo = todos.value.find((t) => t.id === id)
+    if (!todo) return
+    Object.assign(todo, patch)
+  }
+
   function toggleDone(id: string) {
     const todo = todos.value.find((t) => t.id === id)
     if (!todo) return
@@ -136,21 +161,9 @@ export const useTodosStore = defineStore('todos', () => {
     if (todo.done && currentTaskId.value === id) currentTaskId.value = null
   }
 
-  function moveTodo(id: string, direction: -1 | 1) {
-    const sorted = todos.value.filter((t) => !t.done).sort((a, b) => a.order - b.order)
-    const index = sorted.findIndex((t) => t.id === id)
-    const targetIndex = index + direction
-    if (index === -1 || targetIndex < 0 || targetIndex >= sorted.length) return
-    const a = sorted[index]
-    const b = sorted[targetIndex]
-    const tempOrder = a.order
-    a.order = b.order
-    b.order = tempOrder
-  }
-
   function reorderTodoBefore(draggedTodoId: string, targetTodoId: string, before: boolean) {
     if (draggedTodoId === targetTodoId) return
-    const sorted = todos.value.filter((t) => !t.done).sort((a, b) => a.order - b.order)
+    const sorted = sortTasks(todos.value.filter((t) => !t.done))
     const fromIndex = sorted.findIndex((t) => t.id === draggedTodoId)
     const targetIndex = sorted.findIndex((t) => t.id === targetTodoId)
     if (fromIndex === -1 || targetIndex === -1) return
@@ -162,6 +175,7 @@ export const useTodosStore = defineStore('todos', () => {
     sorted.forEach((todo, index) => {
       todo.order = index
     })
+    hasCustomOrder.value = true
   }
 
   function startDrag(id: string) {
@@ -196,12 +210,14 @@ export const useTodosStore = defineStore('todos', () => {
     filters.value = { importance: 'all', urgency: 'all', tag: 'all' }
     currentTaskId.value = null
     viewMode.value = 'all'
+    hasCustomOrder.value = false
   }
 
   return {
     todos,
     filters,
     viewMode,
+    hasCustomOrder,
     allTags,
     filteredTodos,
     completedTodos,
@@ -209,10 +225,11 @@ export const useTodosStore = defineStore('todos', () => {
     draggedId,
     currentTaskId,
     currentTask,
+    sortTasks,
     addTodo,
+    updateTodo,
     removeTodo,
     toggleDone,
-    moveTodo,
     startDrag,
     dragOverTodo,
     endDrag,

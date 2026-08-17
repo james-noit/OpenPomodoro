@@ -3,13 +3,16 @@ import { watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from './stores/settings'
 import { useMultitaskStore } from './stores/multitask'
+import { useViewStore } from './stores/view'
 import AppHeader from './components/AppHeader.vue'
 import PomodoroClock from './components/PomodoroClock.vue'
 import TodoList from './components/TodoList.vue'
 import MultitaskView from './components/MultitaskView.vue'
+import EisenhowerView from './components/EisenhowerView.vue'
 
 const settings = useSettingsStore()
 const multitask = useMultitaskStore()
+const view = useViewStore()
 const { locale } = useI18n()
 
 watchEffect(() => {
@@ -24,11 +27,12 @@ watchEffect(() => {
 
 <template>
   <AppHeader />
-  <main v-if="!multitask.enabled" class="main-view">
+  <EisenhowerView v-if="view.current === 'eisenhower'" />
+  <MultitaskView v-else-if="multitask.enabled" />
+  <main v-else class="main-view">
     <PomodoroClock class="main-view__clock" />
     <TodoList class="main-view__todos" />
   </main>
-  <MultitaskView v-else />
 </template>
 
 <style scoped>

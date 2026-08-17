@@ -4,7 +4,7 @@ import { useTodosStore } from '../stores/todos'
 import TaskProjectTag from './TaskProjectTag.vue'
 import type { Todo } from '../types/todo'
 
-const props = defineProps<{ todo: Todo; isFirst: boolean; isLast: boolean }>()
+const props = defineProps<{ todo: Todo }>()
 const { t } = useI18n()
 const todos = useTodosStore()
 
@@ -33,34 +33,14 @@ function onDragOver(event: DragEvent) {
       :checked="props.todo.done"
       @change="todos.toggleDone(props.todo.id)"
     />
-    <div class="todo-item__content">
-      <span class="todo-item__title">{{ props.todo.title }}</span>
-      <div class="todo-item__badges">
-        <span class="badge" :class="`badge--${props.todo.importance}`">{{ t(`todo.${props.todo.importance}`) }}</span>
-        <span class="badge" :class="`badge--${props.todo.urgency}`">{{ t(`todo.${props.todo.urgency}`) }}</span>
-        <span v-for="tag in props.todo.tags" :key="tag" class="badge badge--tag">{{ tag }}</span>
-      </div>
-      <TaskProjectTag :todo="props.todo" />
+    <span class="todo-item__title">{{ props.todo.title }}</span>
+    <div class="todo-item__badges">
+      <span class="badge" :class="`badge--${props.todo.importance}`">{{ t(`todo.${props.todo.importance}`) }}</span>
+      <span class="badge" :class="`badge--${props.todo.urgency}`">{{ t(`todo.${props.todo.urgency}`) }}</span>
+      <span v-for="tag in props.todo.tags" :key="tag" class="badge badge--tag">{{ tag }}</span>
     </div>
-    <div class="todo-item__actions">
-      <button
-        type="button"
-        :disabled="props.isFirst"
-        :aria-label="t('todo.moveUp')"
-        @click="todos.moveTodo(props.todo.id, -1)"
-      >
-        ↑
-      </button>
-      <button
-        type="button"
-        :disabled="props.isLast"
-        :aria-label="t('todo.moveDown')"
-        @click="todos.moveTodo(props.todo.id, 1)"
-      >
-        ↓
-      </button>
-      <button type="button" :aria-label="t('todo.delete')" @click="todos.removeTodo(props.todo.id)">✕</button>
-    </div>
+    <TaskProjectTag :todo="props.todo" />
+    <button type="button" class="todo-item__delete" :aria-label="t('todo.delete')" @click="todos.removeTodo(props.todo.id)">✕</button>
   </li>
 </template>
 
@@ -68,13 +48,14 @@ function onDragOver(event: DragEvent) {
 .todo-item {
   position: relative;
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.75rem;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background-color: var(--color-surface);
   transition: opacity 0.15s, transform 0.15s;
+  overflow-x: auto;
 }
 
 .todo-item--done .todo-item__title {
@@ -91,24 +72,21 @@ function onDragOver(event: DragEvent) {
   color: var(--color-text-muted);
   line-height: 1.6;
   user-select: none;
-}
-
-.todo-item__content {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+  flex-shrink: 0;
 }
 
 .todo-item__title {
-  overflow-wrap: break-word;
+  flex: 1 1 auto;
+  min-width: 4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .todo-item__badges {
   display: flex;
-  gap: 0.4rem;
-  flex-wrap: wrap;
+  gap: 0.35rem;
+  flex-shrink: 0;
 }
 
 .badge {
@@ -117,6 +95,7 @@ function onDragOver(event: DragEvent) {
   border-radius: 999px;
   background-color: var(--color-surface-alt);
   color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .badge--low {
@@ -134,12 +113,8 @@ function onDragOver(event: DragEvent) {
   color: #fff;
 }
 
-.todo-item__actions {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.todo-item__actions button {
+.todo-item__delete {
+  flex-shrink: 0;
   min-width: 2.25rem;
   min-height: 2.25rem;
   display: inline-flex;
@@ -156,10 +131,5 @@ function onDragOver(event: DragEvent) {
   width: 1.15rem;
   height: 1.15rem;
   flex-shrink: 0;
-}
-
-.todo-item__actions button:disabled {
-  opacity: 0.4;
-  cursor: default;
 }
 </style>

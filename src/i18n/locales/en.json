@@ -7,9 +7,16 @@
     "file": "File",
     "exportTodo": "Export data",
     "importTodo": "Import data",
+    "views": "Views",
+    "pomodoro": "Pomodoro",
+    "eisenhower": "Eisenhower",
     "reset": "Reset",
-    "resetConfirm": "This will erase your to-do list and reset the pomodoro clock. Continue?",
-    "preferences": "Preferences"
+    "resetWarning": "This will erase your to-do list, projects, and settings, and reset the pomodoro clock.",
+    "resetInstruction": "Type \"{phrase}\" below to confirm.",
+    "cancel": "Cancel",
+    "preferences": "Preferences",
+    "developer": "Developer",
+    "seedMockData": "Seed mock data"
   },
   "theme": {
     "label": "Theme",
@@ -33,13 +40,23 @@
     "duration": "Duration",
     "bellOn": "Enable bell sound",
     "bellOff": "Disable bell sound",
-    "soundSettings": "Sound settings",
+    "settings": "Settings",
+    "soundSettings": "Sound",
     "preview": "Preview",
     "sounds": {
       "digital": "Digital",
       "classic": "Classic",
       "siren": "Siren",
       "buzzer": "Buzzer"
+    },
+    "clockStyle": "Clock style",
+    "clockStyles": {
+      "boxes": "Boxes",
+      "ring": "Ring"
+    },
+    "boxOrders": {
+      "sequential": "Sequential",
+      "random": "Random"
     },
     "currentTask": "Current task",
     "selectTask": "Select task",
@@ -70,8 +87,6 @@
     "medium": "Medium",
     "high": "High",
     "empty": "No tasks yet.",
-    "moveUp": "Move up",
-    "moveDown": "Move down",
     "delete": "Delete",
     "dragHandle": "Drag to reorder",
     "completedTasks": "Completed tasks",
@@ -125,5 +140,20 @@
       "moving": "> Moving",
       "moving-fast": ">> Moving fast!"
     }
+  },
+  "eisenhower": {
+    "title": "Eisenhower Matrix",
+    "doFirst": "Do first",
+    "doFirstHint": "Important & urgent",
+    "schedule": "Schedule",
+    "scheduleHint": "Important & not urgent",
+    "delegate": "Delegate",
+    "delegateHint": "Not important & urgent",
+    "eliminate": "Eliminate",
+    "eliminateHint": "Not important & not urgent",
+    "empty": "Nothing here.",
+    "axisUrgent": "Urgent",
+    "axisNotUrgent": "Not urgent",
+    "axisImportant": "Important"
   }
 }

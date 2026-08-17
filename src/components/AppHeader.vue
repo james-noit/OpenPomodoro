@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import AppMenu from './AppMenu.vue'
 import MultitaskToggle from './MultitaskToggle.vue'
+import { useViewStore } from '../stores/view'
 
 const appVersion = __APP_VERSION__
+const view = useViewStore()
 </script>
 
 <template>
@@ -30,7 +32,7 @@ const appVersion = __APP_VERSION__
           />
         </a>
       </div>
-      <MultitaskToggle />
+      <MultitaskToggle v-if="view.current === 'pomodoro'" />
     </div>
   </header>
 </template>

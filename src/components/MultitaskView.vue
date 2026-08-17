@@ -6,7 +6,7 @@ import { useClockStore } from '../stores/clock'
 import { useSettingsStore } from '../stores/settings'
 import MultitaskCard from './MultitaskCard.vue'
 import MultitaskTaskDrawer from './MultitaskTaskDrawer.vue'
-import SoundSettings from './SoundSettings.vue'
+import ClockSettings from './ClockSettings.vue'
 
 const { t } = useI18n()
 const multitask = useMultitaskStore()
@@ -54,7 +54,7 @@ const borderColor = computed(() => capacityColorVar(multitask.cards.length))
         <button type="button" :class="{ active: clock.mode === 'break' }" @click="clock.setMode('break')">
           {{ t('clock.break') }}
         </button>
-        <SoundSettings />
+        <ClockSettings />
       </div>
       <span class="multitask-view__time">{{ formattedTime }}</span>
       <label class="multitask-view__duration">

@@ -7,6 +7,7 @@ import { useMultitaskStore } from '../stores/multitask'
 import ProjectForm from './ProjectForm.vue'
 import TodoForm from './TodoForm.vue'
 import type { Project } from '../types/project'
+import type { Priority, Todo } from '../types/todo'
 
 const props = defineProps<{
   project: Project
@@ -26,6 +27,10 @@ const expandedMilestones = ref<Set<string>>(new Set())
 const newMilestoneName = ref('')
 const addingTaskMilestoneId = ref<string | null>(null)
 const pickingMilestoneId = ref<string | null>(null)
+const editingTaskId = ref<string | null>(null)
+const editTitle = ref('')
+const editImportance = ref<Priority>('medium')
+const editUrgency = ref<Priority>('medium')
 
 const milestones = computed(() => projects.milestonesForProject(props.project.id))
 
@@ -34,7 +39,25 @@ const taskCount = computed(
 )
 
 function milestoneTasks(milestoneId: string) {
-  return todos.todos.filter((todo) => !todo.done && todo.milestoneId === milestoneId)
+  return todos.sortTasks(todos.todos.filter((todo) => !todo.done && todo.milestoneId === milestoneId))
+}
+
+function startTaskEdit(todo: Todo) {
+  editingTaskId.value = todo.id
+  editTitle.value = todo.title
+  editImportance.value = todo.importance
+  editUrgency.value = todo.urgency
+}
+
+function cancelTaskEdit() {
+  editingTaskId.value = null
+}
+
+function saveTaskEdit(id: string) {
+  const trimmed = editTitle.value.trim()
+  if (!trimmed) return
+  todos.updateTodo(id, { title: trimmed, importance: editImportance.value, urgency: editUrgency.value })
+  editingTaskId.value = null
 }
 
 function toggleMilestone(id: string) {
@@ -123,36 +146,75 @@ function pickTask(todoId: string) {
         </div>
 
         <div v-if="expandedMilestones.has(milestone.id)" class="milestone-tree__body">
-          <ul v-if="milestoneTasks(milestone.id).length" class="milestone-tree__tasks">
+          <TransitionGroup
+            v-if="milestoneTasks(milestone.id).length"
+            tag="ul"
+            name="task-toss"
+            class="milestone-tree__tasks"
+          >
             <li v-for="todo in milestoneTasks(milestone.id)" :key="todo.id" class="milestone-task">
-              <input type="checkbox" :checked="todo.done" @change="todos.toggleDone(todo.id)" />
-              <span class="milestone-task__title">{{ todo.title }}</span>
-              <div class="milestone-task__badges">
-                <span class="badge" :class="`badge--${todo.importance}`">{{ t(`todo.${todo.importance}`) }}</span>
-                <span class="badge" :class="`badge--${todo.urgency}`">{{ t(`todo.${todo.urgency}`) }}</span>
-              </div>
-              <button
-                v-if="multitaskMode && isPickable(todo.id)"
-                type="button"
-                class="milestone-task__assign"
-                :aria-label="t('multitask.assignToCard')"
-                :title="t('multitask.assignToCard')"
-                @click="pickTask(todo.id)"
-              >
-                +
-              </button>
-              <span v-else-if="multitaskMode" class="milestone-task__in-grid">{{ t('multitask.inGrid') }}</span>
-              <button
-                type="button"
-                class="milestone-task__unassign"
-                :aria-label="t('projects.unassign')"
-                :title="t('projects.unassign')"
-                @click="todos.unassignFromProject(todo.id)"
-              >
-                ✕
-              </button>
+              <form v-if="editingTaskId === todo.id" class="milestone-task__edit-form" @submit.prevent="saveTaskEdit(todo.id)">
+                <input v-model="editTitle" type="text" class="milestone-task__edit-title" />
+                <div class="milestone-task__edit-row">
+                  <select v-model="editImportance">
+                    <option value="low">{{ t('todo.low') }}</option>
+                    <option value="medium">{{ t('todo.medium') }}</option>
+                    <option value="high">{{ t('todo.high') }}</option>
+                  </select>
+                  <select v-model="editUrgency">
+                    <option value="low">{{ t('todo.low') }}</option>
+                    <option value="medium">{{ t('todo.medium') }}</option>
+                    <option value="high">{{ t('todo.high') }}</option>
+                  </select>
+                </div>
+                <div class="milestone-task__edit-actions">
+                  <button type="submit">{{ t('projects.save') }}</button>
+                  <button type="button" @click="cancelTaskEdit">{{ t('projects.cancel') }}</button>
+                </div>
+              </form>
+              <template v-else>
+                <div class="milestone-task__main">
+                  <input type="checkbox" :checked="todo.done" @change="todos.toggleDone(todo.id)" />
+                  <span class="milestone-task__title">{{ todo.title }}</span>
+                  <button
+                    type="button"
+                    class="milestone-task__edit"
+                    :aria-label="t('projects.edit')"
+                    :title="t('projects.edit')"
+                    @click="startTaskEdit(todo)"
+                  >
+                    ✎
+                  </button>
+                  <button
+                    type="button"
+                    class="milestone-task__unassign"
+                    :aria-label="t('projects.unassign')"
+                    :title="t('projects.unassign')"
+                    @click="todos.unassignFromProject(todo.id)"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div class="milestone-task__meta">
+                  <div class="milestone-task__badges">
+                    <span class="badge" :class="`badge--${todo.importance}`">{{ t(`todo.${todo.importance}`) }}</span>
+                    <span class="badge" :class="`badge--${todo.urgency}`">{{ t(`todo.${todo.urgency}`) }}</span>
+                  </div>
+                  <button
+                    v-if="multitaskMode && isPickable(todo.id)"
+                    type="button"
+                    class="milestone-task__assign"
+                    :aria-label="t('multitask.assignToCard')"
+                    :title="t('multitask.assignToCard')"
+                    @click="pickTask(todo.id)"
+                  >
+                    +
+                  </button>
+                  <span v-else-if="multitaskMode" class="milestone-task__in-grid">{{ t('multitask.inGrid') }}</span>
+                </div>
+              </template>
             </li>
-          </ul>
+          </TransitionGroup>
           <p v-else class="project-tree__empty">{{ t('projects.noMilestoneTasks') }}</p>
 
           <div class="milestone-tree__footer">
@@ -384,6 +446,7 @@ function pickTask(todoId: string) {
 }
 
 .milestone-tree__tasks {
+  position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -392,13 +455,51 @@ function pickTask(todoId: string) {
   gap: 0.4rem;
 }
 
+.task-toss-move {
+  transition: transform 0.35s ease;
+}
+
+.task-toss-enter-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.task-toss-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.task-toss-leave-active {
+  transition: opacity 0.45s cubic-bezier(0.55, 0, 1, 0.45), transform 0.45s cubic-bezier(0.55, 0, 1, 0.45);
+  position: absolute;
+  width: 100%;
+}
+
+.task-toss-leave-to {
+  opacity: 0;
+  transform: translateX(70px) rotate(14deg) scale(0.85);
+}
+
 .milestone-task {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.35rem;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 0.4rem 0.6rem;
+}
+
+.milestone-task__main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.milestone-task__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding-left: 1.65rem;
 }
 
 .milestone-task__title {
@@ -407,6 +508,18 @@ function pickTask(todoId: string) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.milestone-task__edit {
+  flex-shrink: 0;
+  min-width: 2rem;
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
 }
 
 .milestone-task__badges {
@@ -447,6 +560,57 @@ function pickTask(todoId: string) {
   background: none;
   border: none;
   color: var(--color-text-muted);
+}
+
+.milestone-task__edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.milestone-task__edit-title {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+}
+
+.milestone-task__edit-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.milestone-task__edit-row select {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+}
+
+.milestone-task__edit-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.milestone-task__edit-actions button {
+  border-radius: 4px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.milestone-task__edit-actions button[type='submit'] {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border: none;
+}
+
+.milestone-task__edit-actions button[type='button'] {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
 }
 
 .milestone-tree__footer {

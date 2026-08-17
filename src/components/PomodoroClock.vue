@@ -4,7 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '../stores/settings'
 import { useTodosStore } from '../stores/todos'
 import { useClockStore } from '../stores/clock'
-import SoundSettings from './SoundSettings.vue'
+import ClockSettings from './ClockSettings.vue'
+import BoxClock from './BoxClock.vue'
 
 const { t } = useI18n()
 const settings = useSettingsStore()
@@ -71,26 +72,32 @@ onMounted(() => {
       <button type="button" :class="{ active: clock.mode === 'break' }" @click="clock.setMode('break')">
         {{ t('clock.break') }}
       </button>
-      <SoundSettings />
+      <ClockSettings />
     </div>
 
-    <div class="clock__dial">
-      <svg viewBox="0 0 200 200" width="240" height="240">
-        <circle cx="100" cy="100" :r="radius" class="clock__track" fill="none" stroke-width="10" />
-        <circle
-          cx="100"
-          cy="100"
-          :r="radius"
-          class="clock__progress"
-          fill="none"
-          stroke-width="10"
-          stroke-linecap="round"
-          :stroke-dasharray="circumference"
-          :stroke-dashoffset="dashOffset"
-          transform="rotate(-90 100 100)"
-        />
-      </svg>
-      <span class="clock__time">{{ formattedTime }}</span>
+    <div class="clock__dial" :class="{ 'clock__dial--boxes': settings.clockStyle === 'boxes' }">
+      <template v-if="settings.clockStyle === 'boxes'">
+        <BoxClock />
+        <span class="clock__time clock__time--boxes">{{ formattedTime }}</span>
+      </template>
+      <template v-else>
+        <svg viewBox="0 0 200 200" width="240" height="240">
+          <circle cx="100" cy="100" :r="radius" class="clock__track" fill="none" stroke-width="10" />
+          <circle
+            cx="100"
+            cy="100"
+            :r="radius"
+            class="clock__progress"
+            fill="none"
+            stroke-width="10"
+            stroke-linecap="round"
+            :stroke-dasharray="circumference"
+            :stroke-dashoffset="dashOffset"
+            transform="rotate(-90 100 100)"
+          />
+        </svg>
+        <span class="clock__time">{{ formattedTime }}</span>
+      </template>
     </div>
 
     <div class="clock__task">
@@ -189,6 +196,11 @@ onMounted(() => {
   justify-content: center;
 }
 
+.clock__dial--boxes {
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .clock__track {
   stroke: var(--color-surface-alt);
 }
@@ -202,6 +214,35 @@ onMounted(() => {
   position: absolute;
   font-size: 2.5rem;
   font-weight: 600;
+}
+
+.clock__time--boxes {
+  position: static;
+  font-size: 1.75rem;
+}
+
+@media (max-width: 799px) {
+  .clock {
+    padding: 1rem 0.75rem;
+    gap: 0.6rem;
+  }
+
+  .clock__dial svg {
+    width: 160px;
+    height: 160px;
+  }
+
+  .clock__time {
+    font-size: 1.75rem;
+  }
+
+  .clock__dial--boxes {
+    gap: 0.4rem;
+  }
+
+  .clock__time--boxes {
+    font-size: 1.3rem;
+  }
 }
 
 .clock__task {

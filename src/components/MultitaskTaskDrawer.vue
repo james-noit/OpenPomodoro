@@ -7,6 +7,7 @@ import TodoForm from './TodoForm.vue'
 import TodoFilters from './TodoFilters.vue'
 import CompletedTasksStack from './CompletedTasksStack.vue'
 import ProjectsPanel from './ProjectsPanel.vue'
+import TaskProjectTag from './TaskProjectTag.vue'
 
 const { t } = useI18n()
 const todos = useTodosStore()
@@ -89,6 +90,7 @@ function assignToNewCard(taskId: string) {
                 <span class="badge" :class="`badge--${todo.importance}`">{{ t(`todo.${todo.importance}`) }}</span>
                 <span class="badge" :class="`badge--${todo.urgency}`">{{ t(`todo.${todo.urgency}`) }}</span>
               </div>
+              <TaskProjectTag :todo="todo" />
             </div>
             <span v-if="multitask.assignedTaskIds.has(todo.id)" class="task-drawer__pool-status">
               {{ t('multitask.inGrid') }}

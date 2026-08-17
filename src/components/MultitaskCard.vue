@@ -7,6 +7,7 @@ import { useClockStore } from '../stores/clock'
 import { useAdvanceHistoryStore } from '../stores/advanceHistory'
 import AdvanceCheckPopover from './AdvanceCheckPopover.vue'
 import ProjectsPanel from './ProjectsPanel.vue'
+import TaskProjectTag from './TaskProjectTag.vue'
 import type { MultitaskCard, AdvanceProgress } from '../types/multitask'
 import type { Priority } from '../types/todo'
 
@@ -31,11 +32,13 @@ function isPickable(todoId: string): boolean {
 }
 
 const pickableTasks = computed(() =>
-  todos.todos
-    .filter((todo) => !todo.done && isPickable(todo.id))
-    .filter((todo) => pickImportance.value === 'all' || todo.importance === pickImportance.value)
-    .filter((todo) => pickUrgency.value === 'all' || todo.urgency === pickUrgency.value)
-    .filter((todo) => pickTag.value === 'all' || todo.tags.includes(pickTag.value)),
+  todos.sortTasks(
+    todos.todos
+      .filter((todo) => !todo.done && isPickable(todo.id))
+      .filter((todo) => pickImportance.value === 'all' || todo.importance === pickImportance.value)
+      .filter((todo) => pickUrgency.value === 'all' || todo.urgency === pickUrgency.value)
+      .filter((todo) => pickTag.value === 'all' || todo.tags.includes(pickTag.value)),
+  ),
 )
 
 function openTaskModal() {
@@ -166,7 +169,10 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
           <p v-if="!pickableTasks.length" class="multitask-card__modal-empty">{{ t('todo.empty') }}</p>
           <ul v-else class="multitask-card__task-list">
             <li v-for="todo in pickableTasks" :key="todo.id">
-              <button type="button" class="multitask-card__task-list-item" @click="selectTask(todo.id)">{{ todo.title }}</button>
+              <button type="button" class="multitask-card__task-list-item" @click="selectTask(todo.id)">
+                <span class="multitask-card__task-list-title">{{ todo.title }}</span>
+                <TaskProjectTag :todo="todo" />
+              </button>
             </li>
           </ul>
         </template>
@@ -412,12 +418,20 @@ function onAdvanceAnswer(progress: AdvanceProgress) {
 
 .multitask-card__task-list-item {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
   text-align: left;
   background: none;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   color: var(--color-text);
   padding: 0.5rem 0.75rem;
+}
+
+.multitask-card__task-list-title {
+  overflow-wrap: break-word;
 }
 
 .multitask-card__task-list-item:hover {

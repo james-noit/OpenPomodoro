@@ -38,18 +38,6 @@ const milestone = computed(() => projects.milestones.find((m) => m.id === props.
   color: var(--color-text-muted);
 }
 
-@media (min-width: 480px) {
-  .task-project-tag {
-    position: absolute;
-    right: 0.6rem;
-    bottom: 0.4rem;
-    align-items: flex-end;
-    text-align: right;
-    max-width: 55%;
-    pointer-events: none;
-  }
-}
-
 .task-project-tag__project,
 .task-project-tag__milestone {
   display: block;
