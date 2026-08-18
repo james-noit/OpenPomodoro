@@ -156,6 +156,12 @@
     "empty": "Nothing here.",
     "axisUrgent": "Urgent",
     "axisNotUrgent": "Not urgent",
-    "axisImportant": "Important"
+    "axisImportant": "Important",
+    "viewDetailed": "Detailed view",
+    "viewCompact": "Compact view",
+    "viewMinimal": "Minimal view",
+    "noProject": "No project",
+    "taskDetail": "Task details",
+    "markDone": "Mark done"
   }
 }
