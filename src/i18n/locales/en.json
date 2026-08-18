@@ -129,20 +129,19 @@
   "multitask": {
     "toggleLabel": "Multitask",
     "capacityTip": "Tip: research on working memory suggests people can only really hold about four things in mind at once — piling on more tends to hurt focus rather than help it (Cowan, 2001, Behavioral and Brain Sciences).",
-    "addCard": "Add card",
-    "removeCard": "Remove card",
+    "addCard": "Add task",
     "manageTasks": "Tasks",
     "taskPool": "Task pool",
-    "assignToCard": "Add as new card",
-    "inGrid": "In grid",
+    "assignToCard": "Add as new task",
+    "inGrid": "In list",
     "clear": "Clear",
     "finish": "Finish",
-    "advanceQuestion": "How have we advanced this topic?",
-    "advanceOptions": {
-      "stalled": "[X] Stalled",
-      "moving": "> Moving",
-      "moving-fast": ">> Moving fast!"
-    }
+    "emptyGrid": "No tasks yet. Add one to start multitasking.",
+    "iterationQuestion": "Was this iteration profitable?",
+    "iterationQuestionShort": "Profitable?",
+    "iterationMiss": "Not profitable",
+    "iterationHit": "Profitable",
+    "iterationDoubleHit": "Very profitable"
   },
   "eisenhower": {
     "title": "Eisenhower Matrix",

@@ -129,20 +129,19 @@
   "multitask": {
     "toggleLabel": "Multitarea",
     "capacityTip": "Consejo: la investigación sobre la memoria de trabajo sugiere que las personas solo pueden retener realmente unas cuatro cosas en mente a la vez — acumular más tiende a perjudicar el enfoque en vez de ayudarlo (Cowan, 2001, Behavioral and Brain Sciences).",
-    "addCard": "Añadir tarjeta",
-    "removeCard": "Eliminar tarjeta",
+    "addCard": "Añadir tarea",
     "manageTasks": "Tareas",
     "taskPool": "Banco de tareas",
-    "assignToCard": "Añadir como tarjeta nueva",
-    "inGrid": "En la cuadrícula",
+    "assignToCard": "Añadir como tarea nueva",
+    "inGrid": "En la lista",
     "clear": "Vaciar",
     "finish": "Terminar",
-    "advanceQuestion": "¿Cómo hemos avanzado en este tema?",
-    "advanceOptions": {
-      "stalled": "[X] Estancado",
-      "moving": "> Avanzando",
-      "moving-fast": ">> ¡Avanzando rápido!"
-    }
+    "emptyGrid": "Aún no hay tareas. Añade una para empezar a multitarear.",
+    "iterationQuestion": "¿Ha sido productiva esta iteración?",
+    "iterationQuestionShort": "¿Productiva?",
+    "iterationMiss": "No productiva",
+    "iterationHit": "Productiva",
+    "iterationDoubleHit": "Muy productiva"
   },
   "eisenhower": {
     "title": "Matriz de Eisenhower",

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed } from 'vue'
 import { useLocalStorage } from '../composables/useLocalStorage'
 import { useTodosStore } from './todos'
-import type { MultitaskCard } from '../types/multitask'
+import type { AccomplishmentMark, MultitaskCard } from '../types/multitask'
 
 function createId(): string {
   return crypto.randomUUID()
@@ -16,6 +16,14 @@ export const useMultitaskStore = defineStore('multitask', () => {
   const enabled = useLocalStorage<boolean>('openpomodoro.multitaskEnabled', false)
   const cards = useLocalStorage<MultitaskCard[]>('openpomodoro.multitaskCards', [])
   const capacityTipDismissed = useLocalStorage<boolean>('openpomodoro.multitaskTipDismissed', false)
+
+  // Cards persisted before the accomplishments/lastAnsweredPhaseEndAt fields existed
+  // are missing them entirely (useLocalStorage has no migration step) — backfill once
+  // on load so every read site downstream can assume the full shape.
+  for (const card of cards.value) {
+    if (!card.accomplishments) card.accomplishments = []
+    if (card.lastAnsweredPhaseEndAt === undefined) card.lastAnsweredPhaseEndAt = null
+  }
 
   const dissolveTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
@@ -50,7 +58,7 @@ export const useMultitaskStore = defineStore('multitask', () => {
 
   function addCard(taskId: string | null = null) {
     const id = createId()
-    cards.value.push({ id, taskId, createdAt: Date.now() })
+    cards.value.push({ id, taskId, createdAt: Date.now(), accomplishments: [], lastAnsweredPhaseEndAt: null })
     if (taskId === null) scheduleDissolveIfEmpty(id)
   }
 
@@ -66,17 +74,26 @@ export const useMultitaskStore = defineStore('multitask', () => {
     if (taskId !== null) cancelDissolve(cardId)
   }
 
+  // Finish/Clear both retire the row entirely now (the row animates itself out,
+  // then calls these) — unlike the old "clear the task but keep the empty card"
+  // behavior, there is no longer an empty-but-kept state reachable from either action.
   function clearCard(cardId: string) {
-    assignTask(cardId, null)
-    scheduleDissolveIfEmpty(cardId)
+    removeCard(cardId)
   }
 
   function finishCard(cardId: string) {
     const card = cards.value.find((c) => c.id === cardId)
     if (!card || !card.taskId) return
     todos.toggleDone(card.taskId)
-    card.taskId = null
-    scheduleDissolveIfEmpty(cardId)
+    removeCard(cardId)
+  }
+
+  function recordAccomplishment(cardId: string, marks: AccomplishmentMark[], phaseEndAt: number) {
+    const card = cards.value.find((c) => c.id === cardId)
+    if (!card) return
+    if (!card.accomplishments) card.accomplishments = []
+    card.accomplishments.push(...marks)
+    card.lastAnsweredPhaseEndAt = phaseEndAt
   }
 
   function setEnabled(val: boolean) {
@@ -112,6 +129,7 @@ export const useMultitaskStore = defineStore('multitask', () => {
     assignTask,
     clearCard,
     finishCard,
+    recordAccomplishment,
     cancelDissolve,
     scheduleDissolveIfEmpty,
     setEnabled,

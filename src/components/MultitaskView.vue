@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useMultitaskStore } from '../stores/multitask'
 import { useClockStore } from '../stores/clock'
 import { useSettingsStore, MIN_DURATION_SECONDS, MAX_FOCUS_SECONDS, MAX_BREAK_SECONDS } from '../stores/settings'
-import MultitaskCard from './MultitaskCard.vue'
+import MultitaskTaskRow from './MultitaskTaskRow.vue'
 import MultitaskTaskDrawer from './MultitaskTaskDrawer.vue'
 import ClockSettings from './ClockSettings.vue'
 
@@ -32,6 +32,99 @@ function capacityColorVar(count: number): string {
 }
 
 const borderColor = computed(() => capacityColorVar(multitask.cards.length))
+
+const showIterationBanner = computed(() =>
+  clock.lastFocusEndAt !== null &&
+  multitask.cards.some((card) => card.taskId !== null && card.lastAnsweredPhaseEndAt !== clock.lastFocusEndAt),
+)
+
+// Explicit JS transition hooks (css: false) rather than Vue's automatic CSS-duration
+// detection — see BoxClock.vue for why: a row removed shortly after being added can
+// interrupt Vue's own enter bookkeeping and leave the leave transition never resolving.
+const ROW_ENTER_MS = 380
+const ROW_LEAVE_MS = 300
+const pendingRowTimers = new WeakMap<Element, ReturnType<typeof setTimeout>>()
+
+function clearPendingRow(el: Element) {
+  const timer = pendingRowTimers.get(el)
+  if (timer) {
+    clearTimeout(timer)
+    pendingRowTimers.delete(el)
+  }
+}
+
+function onRowEnter(el: Element, done: () => void) {
+  const target = el as HTMLElement
+  clearPendingRow(el)
+  target.classList.remove('mt-list-row--leaving')
+  target.classList.add('mt-list-row--entering')
+  pendingRowTimers.set(
+    el,
+    setTimeout(() => {
+      pendingRowTimers.delete(el)
+      done()
+    }, ROW_ENTER_MS),
+  )
+}
+
+function onRowAfterEnter(el: Element) {
+  ;(el as HTMLElement).classList.remove('mt-list-row--entering')
+}
+
+function onRowEnterCancelled(el: Element) {
+  clearPendingRow(el)
+  ;(el as HTMLElement).classList.remove('mt-list-row--entering')
+}
+
+function onRowLeave(el: Element, done: () => void) {
+  const target = el as HTMLElement
+  clearPendingRow(el)
+  target.classList.remove('mt-list-row--entering')
+  target.classList.add('mt-list-row--leaving')
+  pendingRowTimers.set(
+    el,
+    setTimeout(() => {
+      pendingRowTimers.delete(el)
+      done()
+    }, ROW_LEAVE_MS),
+  )
+}
+
+const BANNER_ENTER_MS = 300
+const BANNER_LEAVE_MS = 250
+let pendingBannerTimer: ReturnType<typeof setTimeout> | undefined
+
+function clearPendingBanner() {
+  if (pendingBannerTimer) {
+    clearTimeout(pendingBannerTimer)
+    pendingBannerTimer = undefined
+  }
+}
+
+function onBannerEnter(el: Element, done: () => void) {
+  const target = el as HTMLElement
+  clearPendingBanner()
+  target.classList.remove('multitask-view__banner--leaving')
+  target.classList.add('multitask-view__banner--entering')
+  pendingBannerTimer = setTimeout(done, BANNER_ENTER_MS)
+}
+
+function onBannerAfterEnter(el: Element) {
+  ;(el as HTMLElement).classList.remove('multitask-view__banner--entering')
+}
+
+function onBannerEnterCancelled(el: Element) {
+  clearPendingBanner()
+  ;(el as HTMLElement).classList.remove('multitask-view__banner--entering')
+}
+
+function onBannerLeave(el: Element, done: () => void) {
+  const target = el as HTMLElement
+  clearPendingBanner()
+  target.classList.remove('multitask-view__banner--entering')
+  target.classList.add('multitask-view__banner--leaving')
+  pendingBannerTimer = setTimeout(done, BANNER_LEAVE_MS)
+}
 </script>
 
 <template>
@@ -151,11 +244,36 @@ const borderColor = computed(() => capacityColorVar(multitask.cards.length))
       </button>
     </div>
 
-    <div class="multitask-view__grid">
-      <MultitaskCard v-for="card in multitask.cards" :key="card.id" :card="card" :border-color="borderColor" />
-      <button type="button" class="multitask-view__add-card" :aria-label="t('multitask.addCard')" @click="multitask.addCard()">
-        <span class="multitask-view__add-card-icon" aria-hidden="true">+</span>
-        <span class="multitask-view__add-card-label">{{ t('multitask.addCard') }}</span>
+    <div class="multitask-view__list-wrap">
+      <Transition
+        :css="false"
+        @enter="onBannerEnter"
+        @after-enter="onBannerAfterEnter"
+        @enter-cancelled="onBannerEnterCancelled"
+        @leave="onBannerLeave"
+      >
+        <div v-if="showIterationBanner" class="multitask-view__banner">
+          {{ t('multitask.iterationQuestion') }}
+        </div>
+      </Transition>
+
+      <TransitionGroup
+        tag="div"
+        class="multitask-view__list"
+        :css="false"
+        @enter="onRowEnter"
+        @after-enter="onRowAfterEnter"
+        @enter-cancelled="onRowEnterCancelled"
+        @leave="onRowLeave"
+      >
+        <MultitaskTaskRow v-for="card in multitask.cards" :key="card.id" :card="card" :border-color="borderColor" />
+      </TransitionGroup>
+
+      <p v-if="!multitask.cards.length" class="multitask-view__empty">{{ t('multitask.emptyGrid') }}</p>
+
+      <button type="button" class="multitask-view__add-row" @click="multitask.addCard()">
+        <span aria-hidden="true">+</span>
+        {{ t('multitask.addCard') }}
       </button>
     </div>
   </main>
@@ -323,52 +441,108 @@ const borderColor = computed(() => capacityColorVar(multitask.cards.length))
   min-height: 1.75rem;
 }
 
-.multitask-view__grid {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  gap: 0.75rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
-}
-
-.multitask-view__add-card {
-  container-type: inline-size;
-  flex: 1 1 0;
-  min-width: 3.5rem;
+.multitask-view__list-wrap {
+  position: relative;
   display: flex;
   flex-direction: column;
+  gap: 0.6rem;
+}
+
+.multitask-view__banner {
+  position: absolute;
+  top: -0.6rem;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border-radius: 999px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  z-index: 15;
+}
+
+.multitask-view__banner--entering {
+  animation: mt-banner-enter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes mt-banner-enter {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -100%);
+  }
+}
+
+.multitask-view__banner--leaving {
+  animation: mt-banner-leave 0.25s ease-in forwards;
+}
+
+@keyframes mt-banner-leave {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+}
+
+.multitask-view__list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.mt-list-row--entering {
+  animation: mt-row-enter 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes mt-row-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.mt-list-row--leaving {
+  animation: mt-row-leave 0.3s ease-in forwards;
+}
+
+@keyframes mt-row-leave {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.multitask-view__empty {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.multitask-view__add-row {
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
   background: none;
   border: 1px dashed var(--color-border);
   border-radius: 8px;
-  min-height: 140px;
+  padding: 0.6rem;
   color: var(--color-text-muted);
 }
 
-.multitask-view__add-card:hover {
+.multitask-view__add-row:hover {
   background-color: var(--color-surface-alt);
   color: var(--color-text);
-}
-
-.multitask-view__add-card-icon {
-  font-size: 1.75rem;
-  line-height: 1;
-}
-
-.multitask-view__add-card-label {
-  font-size: 0.85rem;
-}
-
-@container (max-width: 90px) {
-  .multitask-view__add-card-label {
-    display: none;
-  }
-
-  .multitask-view__add-card-icon {
-    font-size: 1.4rem;
-  }
 }
 </style>

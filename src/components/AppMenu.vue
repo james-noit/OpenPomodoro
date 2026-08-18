@@ -5,7 +5,6 @@ import { useTodosStore } from '../stores/todos'
 import { useSettingsStore } from '../stores/settings'
 import { useMultitaskStore } from '../stores/multitask'
 import { useViewStore, type AppView } from '../stores/view'
-import { useAdvanceHistoryStore } from '../stores/advanceHistory'
 import { useProjectsStore } from '../stores/projects'
 import LanguageSelector from './LanguageSelector.vue'
 import ThemeToggle from './ThemeToggle.vue'
@@ -17,7 +16,6 @@ const todos = useTodosStore()
 const settings = useSettingsStore()
 const multitask = useMultitaskStore()
 const view = useViewStore()
-const advanceHistory = useAdvanceHistoryStore()
 const projects = useProjectsStore()
 
 const open = ref(false)
@@ -95,7 +93,6 @@ function confirmReset() {
   settings.reset()
   multitask.reset()
   view.reset()
-  advanceHistory.reset()
   projects.reset()
   resetModalOpen.value = false
   resetConfirmText.value = ''
