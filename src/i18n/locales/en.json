@@ -97,7 +97,8 @@
     "noCompleted": "No completed tasks yet.",
     "close": "Close",
     "viewAll": "All tasks",
-    "viewProjects": "Projects"
+    "viewProjects": "Projects",
+    "searchPlaceholder": "Search by name…"
   },
   "projects": {
     "title": "Projects",

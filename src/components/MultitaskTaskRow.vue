@@ -275,6 +275,10 @@ function answerIteration(marks: AccomplishmentMark[]) {
             <li v-for="todo in pickableTasks" :key="todo.id">
               <button type="button" class="mt-row__task-list-item" @click="selectTask(todo.id)">
                 <span class="mt-row__task-list-title">{{ todo.title }}</span>
+                <span class="mt-row__task-list-badges">
+                  <span class="badge" :class="`badge--${todo.importance}`">{{ t(`todo.${todo.importance}`) }}</span>
+                  <span class="badge" :class="`badge--${todo.urgency}`">{{ t(`todo.${todo.urgency}`) }}</span>
+                </span>
                 <TaskProjectTag :todo="todo" />
               </button>
             </li>
@@ -532,7 +536,7 @@ function answerIteration(marks: AccomplishmentMark[]) {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   width: 100%;
-  max-width: 420px;
+  max-width: 560px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
@@ -625,7 +629,7 @@ function answerIteration(marks: AccomplishmentMark[]) {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.15rem;
+  gap: 0.2rem;
   text-align: left;
   background: none;
   border: 1px solid var(--color-border);
@@ -636,6 +640,35 @@ function answerIteration(marks: AccomplishmentMark[]) {
 
 .mt-row__task-list-title {
   overflow-wrap: break-word;
+}
+
+.mt-row__task-list-badges {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.mt-row__task-list-item .badge {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-muted);
+}
+
+.mt-row__task-list-item .badge--low {
+  background-color: var(--color-low);
+  color: #fff;
+}
+
+.mt-row__task-list-item .badge--medium {
+  background-color: var(--color-medium);
+  color: #fff;
+}
+
+.mt-row__task-list-item .badge--high {
+  background-color: var(--color-high);
+  color: #fff;
 }
 
 .mt-row__task-list-item:hover {

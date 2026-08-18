@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTodosStore } from '../stores/todos'
 import { useMultitaskStore } from '../stores/multitask'
@@ -14,6 +14,8 @@ const todos = useTodosStore()
 const multitask = useMultitaskStore()
 
 const open = ref(false)
+const searchQuery = ref('')
+const searchInputEl = ref<HTMLInputElement | null>(null)
 
 function toggle() {
   open.value = !open.value
@@ -21,11 +23,24 @@ function toggle() {
 
 function close() {
   open.value = false
+  searchQuery.value = ''
 }
 
 function assignToNewCard(taskId: string) {
   multitask.addCard(taskId)
 }
+
+const displayedTodos = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return todos.filteredTodos
+  return todos.filteredTodos.filter((todo) => todo.title.toLowerCase().includes(q))
+})
+
+watch(open, (isOpen) => {
+  if (isOpen) {
+    nextTick(() => searchInputEl.value?.focus())
+  }
+})
 </script>
 
 <template>
@@ -80,10 +95,25 @@ function assignToNewCard(taskId: string) {
           <CompletedTasksStack v-if="todos.completedTodos.length" />
         </div>
 
-        <h4 class="task-drawer__pool-heading">{{ t('multitask.taskPool') }}</h4>
+        <div class="task-drawer__heading-row">
+          <h4 class="task-drawer__heading">{{ t('multitask.taskPool') }}</h4>
+          <span class="task-drawer__count">{{ displayedTodos.length }} / {{ todos.filteredTodos.length }}</span>
+        </div>
+
+        <input
+          v-if="todos.todos.length"
+          v-model="searchQuery"
+          ref="searchInputEl"
+          type="search"
+          class="task-drawer__search"
+          :placeholder="t('todo.searchPlaceholder')"
+          autocomplete="off"
+        >
+
         <p v-if="!todos.filteredTodos.length" class="task-drawer__empty">{{ t('todo.empty') }}</p>
+        <p v-else-if="searchQuery.trim() && !displayedTodos.length" class="task-drawer__no-results">No matches</p>
         <ul v-else class="task-drawer__pool">
-          <li v-for="todo in todos.filteredTodos" :key="todo.id" class="task-drawer__pool-item">
+          <li v-for="todo in displayedTodos" :key="todo.id" class="task-drawer__pool-item">
             <div class="task-drawer__pool-content">
               <span class="task-drawer__pool-title">{{ todo.title }}</span>
               <div class="task-drawer__pool-badges">
@@ -155,7 +185,7 @@ function assignToNewCard(taskId: string) {
   right: 0;
   bottom: 0;
   left: 0;
-  width: 360px;
+  width: 480px;
   max-width: 100%;
   margin-left: auto;
   background-color: var(--color-surface);
@@ -223,7 +253,13 @@ function assignToNewCard(taskId: string) {
   flex-wrap: wrap;
 }
 
-.task-drawer__pool-heading {
+.task-drawer__heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.task-drawer__heading {
   margin: 0;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -231,8 +267,42 @@ function assignToNewCard(taskId: string) {
   color: var(--color-text-muted);
 }
 
-.task-drawer__empty {
+.task-drawer__count {
+  font-size: 0.75rem;
   color: var(--color-text-muted);
+}
+
+.task-drawer__no-results {
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.task-drawer__empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.task-drawer__search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.45rem 0.7rem;
+  border: none;
+  border-bottom: 1.5px solid var(--color-border);
+  background-color: transparent;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.task-drawer__search::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.task-drawer__search:focus {
+  outline: none;
+  border-bottom-color: var(--color-primary);
 }
 
 .task-drawer__pool {
@@ -251,21 +321,23 @@ function assignToNewCard(taskId: string) {
   gap: 0.6rem;
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  padding: 0.5rem 0.6rem;
+  padding: 0.5rem 0.7rem;
 }
 
 .task-drawer__pool-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.25rem;
   min-width: 0;
 }
 
 .task-drawer__pool-title {
+  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.875rem;
 }
 
 .task-drawer__pool-badges {
@@ -296,8 +368,8 @@ function assignToNewCard(taskId: string) {
 }
 
 .badge {
-  font-size: 0.7rem;
-  padding: 0.1rem 0.5rem;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.45rem;
   border-radius: 999px;
   background-color: var(--color-surface-alt);
   color: var(--color-text-muted);
