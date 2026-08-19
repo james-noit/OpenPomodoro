@@ -142,7 +142,9 @@
     "iterationQuestionShort": "Profitable?",
     "iterationMiss": "Not profitable",
     "iterationHit": "Profitable",
-    "iterationDoubleHit": "Very profitable"
+    "iterationDoubleHit": "Very profitable",
+    "addAccomplishmentGreen": "Add a successful mark",
+    "addAccomplishmentRed": "Add a failed mark"
   },
   "eisenhower": {
     "title": "Eisenhower Matrix",

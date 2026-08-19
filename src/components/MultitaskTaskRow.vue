@@ -137,19 +137,43 @@ function answerIteration(marks: AccomplishmentMark[]) {
     <template v-if="task">
       <div class="mt-row__main">
         <div class="mt-row__title-line">
-          <span class="mt-row__title" :class="{ 'mt-row__title--struck': strikeActive }">{{ task.title }}</span>
           <TransitionGroup tag="span" name="mt-square" class="mt-row__squares">
-            <span
+            <button
               v-for="(mark, index) in card.accomplishments"
               :key="index"
+              type="button"
               class="mt-row__square"
               :class="`mt-row__square--${mark}`"
-            ></span>
+              @click="multitask.removeAccomplishment(card.id, index)"
+            ></button>
           </TransitionGroup>
-        </div>
-        <div v-if="project" class="mt-row__project" :title="milestone ? `${project.name} · ${milestone.name}` : project.name">
-          <span aria-hidden="true">{{ project.icon }}</span>
-          {{ project.name }}<template v-if="milestone"> · {{ milestone.name }}</template>
+          <div class="mt-row__add-group">
+            <button
+              type="button"
+              class="mt-row__add mt-row__add--green"
+              :aria-label="t('multitask.addAccomplishmentGreen')"
+              :title="t('multitask.addAccomplishmentGreen')"
+              @click="multitask.addAccomplishment(card.id, 'green')"
+            >+</button>
+            <button
+              type="button"
+              class="mt-row__add mt-row__add--red"
+              :aria-label="t('multitask.addAccomplishmentRed')"
+              :title="t('multitask.addAccomplishmentRed')"
+              @click="multitask.addAccomplishment(card.id, 'red')"
+            >+</button>
+          </div>
+          <div class="mt-row__text">
+            <span class="mt-row__title" :class="{ 'mt-row__title--struck': strikeActive }">{{ task.title }}</span>
+            <div
+              v-if="project"
+              class="mt-row__project"
+              :title="milestone ? `${project.name} · ${milestone.name}` : project.name"
+            >
+              <span aria-hidden="true">{{ project.icon }}</span>
+              {{ project.name }}<template v-if="milestone"> · {{ milestone.name }}</template>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -338,6 +362,15 @@ function answerIteration(marks: AccomplishmentMark[]) {
   gap: 0.5rem;
 }
 
+.mt-row__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .mt-row__project {
   display: block;
   overflow: hidden;
@@ -382,16 +415,29 @@ function answerIteration(marks: AccomplishmentMark[]) {
 }
 
 .mt-row__squares {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.22rem;
+  display: grid;
+  grid-template-rows: repeat(3, 0.6rem);
+  grid-auto-flow: column;
+  grid-auto-columns: 0.6rem;
+  gap: 0.12rem;
   flex-shrink: 0;
 }
 
 .mt-row__square {
   width: 0.6rem;
   height: 0.6rem;
+  padding: 0;
+  border: none;
   border-radius: 3px;
+  cursor: pointer;
+  line-height: 0;
+  background: transparent;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.mt-row__square:hover {
+  transform: scale(0.8);
+  opacity: 0.7;
 }
 
 .mt-row__square--green {
@@ -400,6 +446,43 @@ function answerIteration(marks: AccomplishmentMark[]) {
 
 .mt-row__square--red {
   background-color: var(--color-capacity-critical);
+}
+
+.mt-row__add-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  flex-shrink: 0;
+}
+
+.mt-row__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.6rem;
+  height: 0.6rem;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 0.6rem;
+  line-height: 1;
+  cursor: pointer;
+  background: none;
+  transition: transform 0.15s, filter 0.15s;
+}
+
+.mt-row__add:hover {
+  transform: scale(1.15);
+  filter: brightness(1.15);
+}
+
+.mt-row__add--green {
+  color: var(--color-capacity-safe);
+  border: 1px solid var(--color-capacity-safe);
+}
+
+.mt-row__add--red {
+  color: var(--color-capacity-critical);
+  border: 1px solid var(--color-capacity-critical);
 }
 
 .mt-square-enter-active {

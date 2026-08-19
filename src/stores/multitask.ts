@@ -96,6 +96,19 @@ export const useMultitaskStore = defineStore('multitask', () => {
     card.lastAnsweredPhaseEndAt = phaseEndAt
   }
 
+  function addAccomplishment(cardId: string, mark: AccomplishmentMark) {
+    const card = cards.value.find((c) => c.id === cardId)
+    if (!card) return
+    if (!card.accomplishments) card.accomplishments = []
+    card.accomplishments.push(mark)
+  }
+
+  function removeAccomplishment(cardId: string, index: number) {
+    const card = cards.value.find((c) => c.id === cardId)
+    if (!card || !card.accomplishments) return
+    card.accomplishments.splice(index, 1)
+  }
+
   function setEnabled(val: boolean) {
     enabled.value = val
   }
@@ -130,6 +143,8 @@ export const useMultitaskStore = defineStore('multitask', () => {
     clearCard,
     finishCard,
     recordAccomplishment,
+    addAccomplishment,
+    removeAccomplishment,
     cancelDissolve,
     scheduleDissolveIfEmpty,
     setEnabled,

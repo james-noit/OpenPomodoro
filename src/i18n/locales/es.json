@@ -142,7 +142,9 @@
     "iterationQuestionShort": "¿Productiva?",
     "iterationMiss": "No productiva",
     "iterationHit": "Productiva",
-    "iterationDoubleHit": "Muy productiva"
+    "iterationDoubleHit": "Muy productiva",
+    "addAccomplishmentGreen": "Añadir una marca productiva",
+    "addAccomplishmentRed": "Añadir una marca no productiva"
   },
   "eisenhower": {
     "title": "Matriz de Eisenhower",
