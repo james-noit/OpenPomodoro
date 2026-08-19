@@ -26,3 +26,6 @@ dist-ssr
 
 # Docs
 docs/superpowers
+
+# opencode
+opencode.jsonc

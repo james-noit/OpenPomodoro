@@ -6,6 +6,7 @@ import { useProjectsStore } from '../stores/projects'
 import { useLocalStorage } from '../composables/useLocalStorage'
 import EisenhowerCard from './EisenhowerCard.vue'
 import TaskDetailModal from './TaskDetailModal.vue'
+import NewTaskModal from './NewTaskModal.vue'
 import type { Todo, Priority } from '../types/todo'
 import type { EisenhowerQuadrant, EisenhowerViewMode } from '../types/eisenhower'
 
@@ -74,6 +75,16 @@ function openDetail(id: string) {
 function closeDetail() {
   selectedTodoId.value = null
 }
+
+const activeQuadrant = ref<EisenhowerQuadrant | null>(null)
+
+function openNewTask(quadrant: EisenhowerQuadrant) {
+  activeQuadrant.value = quadrant
+}
+
+function closeNewTask() {
+  activeQuadrant.value = null
+}
 </script>
 
 <template>
@@ -127,6 +138,7 @@ function closeDetail() {
         <header class="eisenhower-quadrant__header">
           <h3>{{ t('eisenhower.doFirst') }}</h3>
           <span class="eisenhower-quadrant__hint">{{ t('eisenhower.doFirstHint') }}</span>
+          <button type="button" class="eisenhower-quadrant__add" :aria-label="t('eisenhower.addTaskToQuadrant')" @click="openNewTask('doFirst')">+</button>
         </header>
         <ul v-if="viewMode === 'detailed'" class="eisenhower-quadrant__list">
           <EisenhowerCard v-for="todo in doFirst" :key="todo.id" :todo="todo" :view-mode="viewMode" @open="openDetail" />
@@ -154,6 +166,7 @@ function closeDetail() {
         <header class="eisenhower-quadrant__header">
           <h3>{{ t('eisenhower.schedule') }}</h3>
           <span class="eisenhower-quadrant__hint">{{ t('eisenhower.scheduleHint') }}</span>
+          <button type="button" class="eisenhower-quadrant__add" :aria-label="t('eisenhower.addTaskToQuadrant')" @click="openNewTask('schedule')">+</button>
         </header>
         <ul v-if="viewMode === 'detailed'" class="eisenhower-quadrant__list">
           <EisenhowerCard v-for="todo in schedule" :key="todo.id" :todo="todo" :view-mode="viewMode" @open="openDetail" />
@@ -181,6 +194,7 @@ function closeDetail() {
         <header class="eisenhower-quadrant__header">
           <h3>{{ t('eisenhower.delegate') }}</h3>
           <span class="eisenhower-quadrant__hint">{{ t('eisenhower.delegateHint') }}</span>
+          <button type="button" class="eisenhower-quadrant__add" :aria-label="t('eisenhower.addTaskToQuadrant')" @click="openNewTask('delegate')">+</button>
         </header>
         <ul v-if="viewMode === 'detailed'" class="eisenhower-quadrant__list">
           <EisenhowerCard v-for="todo in delegate" :key="todo.id" :todo="todo" :view-mode="viewMode" @open="openDetail" />
@@ -208,6 +222,7 @@ function closeDetail() {
         <header class="eisenhower-quadrant__header">
           <h3>{{ t('eisenhower.eliminate') }}</h3>
           <span class="eisenhower-quadrant__hint">{{ t('eisenhower.eliminateHint') }}</span>
+          <button type="button" class="eisenhower-quadrant__add" :aria-label="t('eisenhower.addTaskToQuadrant')" @click="openNewTask('eliminate')">+</button>
         </header>
         <ul v-if="viewMode === 'detailed'" class="eisenhower-quadrant__list">
           <EisenhowerCard v-for="todo in eliminate" :key="todo.id" :todo="todo" :view-mode="viewMode" @open="openDetail" />
@@ -233,6 +248,8 @@ function closeDetail() {
     </div>
 
     <TaskDetailModal v-if="selectedTodo" :todo="selectedTodo" @close="closeDetail" />
+    
+    <NewTaskModal v-if="activeQuadrant" :quadrant="activeQuadrant" @close="closeNewTask" />
   </main>
 </template>
 
@@ -332,8 +349,31 @@ function closeDetail() {
 
 .eisenhower-quadrant__header {
   display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.eisenhower-quadrant__add {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border: none;
+  border-radius: 4px;
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.eisenhower-quadrant__add:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .eisenhower-quadrant__header h3 {

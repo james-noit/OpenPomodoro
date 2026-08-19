@@ -163,6 +163,22 @@
     "viewMinimal": "Vista mínima",
     "noProject": "Sin proyecto",
     "taskDetail": "Detalles de la tarea",
-    "markDone": "Marcar como hecha"
+    "markDone": "Marcar como hecha",
+    "newTaskIn": "Nueva tarea en {quadrant}",
+    "addTaskToQuadrant": "Añadir tarea a esta tarjeta",
+    "createTask": {
+      "title": "Nueva tarea",
+      "project": "Proyecto",
+      "milestone": "Hito",
+      "noProject": "— Sin proyecto —",
+      "noMilestone": "— Sin hito —",
+      "newProject": "+ Nuevo proyecto…",
+      "newMilestone": "+ Nuevo hito…",
+      "pickerProjectHint": "Elige un proyecto primero",
+      "projectName": "Nombre del proyecto",
+      "milestoneName": "Nombre del hito",
+      "save": "Añadir",
+      "cancel": "Cancelar"
+    }
   }
 }
