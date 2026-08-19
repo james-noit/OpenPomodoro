@@ -146,7 +146,7 @@ export const useTodosStore = defineStore('todos', () => {
 
   function updateTodo(
     id: string,
-    patch: Partial<Pick<Todo, 'title' | 'importance' | 'urgency' | 'tags'>>,
+    patch: Partial<Pick<Todo, 'title' | 'importance' | 'urgency' | 'tags' | 'projectId' | 'milestoneId'>>,
   ) {
     const todo = todos.value.find((t) => t.id === id)
     if (!todo) return

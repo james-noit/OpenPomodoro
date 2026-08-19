@@ -6,6 +6,7 @@ import { useTodosStore } from '../stores/todos'
 import { useClockStore } from '../stores/clock'
 import ClockSettings from './ClockSettings.vue'
 import BoxClock from './BoxClock.vue'
+import TaskDetailModal from './TaskDetailModal.vue'
 
 const { t } = useI18n()
 const settings = useSettingsStore()
@@ -32,6 +33,38 @@ const canDecreaseDuration = computed(() => !clock.running && currentDurationSeco
 const canIncreaseDuration = computed(() => !clock.running && currentDurationSeconds.value < maxDurationSeconds.value)
 
 const taskModalOpen = ref(false)
+
+const showDetail = ref(false)
+const titleEditing = ref(false)
+const editTitle = ref('')
+
+function startTitleEdit() {
+  if (!todos.currentTask) return
+  editTitle.value = todos.currentTask.title
+  titleEditing.value = true
+  setTimeout(() => {
+    document.querySelector<HTMLInputElement>('.clock__task-title-input')?.select()
+  }, 0)
+}
+
+function cancelTitleEdit() {
+  titleEditing.value = false
+}
+
+function commitTitleEdit() {
+  const cur = todos.currentTask
+  if (cur) {
+    const trimmed = editTitle.value.trim()
+    if (trimmed && trimmed !== cur.title) {
+      todos.updateTodo(cur.id, { title: trimmed })
+    }
+  }
+  titleEditing.value = false
+}
+
+function openDetail() {
+  showDetail.value = true
+}
 
 function openTaskModal() {
   taskModalOpen.value = true
@@ -186,11 +219,25 @@ onMounted(() => {
     <div class="clock__area clock__area--task">
       <div class="clock__task" :class="{ 'clock__task--empty': !todos.currentTask }">
         <template v-if="todos.currentTask">
-          <div class="clock__task-info">
+          <div class="clock__task-info" @click="openDetail">
             <span class="clock__task-label">{{ t('clock.currentTask') }}</span>
-            <span class="clock__task-title">{{ todos.currentTask.title }}</span>
+            <span
+              v-if="!titleEditing"
+              class="clock__task-title"
+              @click.stop="startTitleEdit"
+            >{{ todos.currentTask.title }}</span>
+            <input
+              v-else
+              v-model="editTitle"
+              type="text"
+              class="clock__task-title-input"
+              @click.stop
+              @keyup.enter="commitTitleEdit"
+              @keyup.esc="cancelTitleEdit"
+              @blur="commitTitleEdit"
+            />
           </div>
-          <div class="clock__task-actions">
+          <div class="clock__task-actions" @click.stop>
             <button type="button" class="clock__task-finish" @click="finishTask">{{ t('clock.finished') }}</button>
             <button type="button" class="clock__task-change" @click="openTaskModal">{{ t('clock.changeTask') }}</button>
           </div>
@@ -226,6 +273,8 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <TaskDetailModal v-if="showDetail && todos.currentTask" :todo="todos.currentTask" @close="showDetail = false" />
   </section>
 </template>
 
@@ -369,6 +418,17 @@ onMounted(() => {
 .clock__task-title {
   font-size: 1rem;
   font-weight: 600;
+}
+
+.clock__task-title-input {
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-family: inherit;
 }
 
 .clock__task-actions {

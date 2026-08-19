@@ -11,10 +11,22 @@ const { t } = useI18n()
 const todos = useTodosStore()
 const projects = useProjectsStore()
 
+const ICONS = ['📁', '📌', '🚀', '🎯', '📚', '💼', '🛠️', '🎨', '🧪', '🏗️', '🌱', '🔥']
+
 const title = ref(props.todo.title)
 const importance = ref<Priority>(props.todo.importance)
 const urgency = ref<Priority>(props.todo.urgency)
 const tagsInput = ref(props.todo.tags.join(', '))
+
+const projectRef = ref<string>(props.todo.projectId ?? '')
+const milestoneRef = ref<string>(props.todo.milestoneId ?? '')
+
+const showNewProject = ref(false)
+const chosenIcon = ref(ICONS[0])
+const projectName = ref('')
+
+const showNewMilestone = ref(false)
+const milestoneName = ref('')
 
 watch(
   () => props.todo.id,
@@ -23,11 +35,42 @@ watch(
     importance.value = props.todo.importance
     urgency.value = props.todo.urgency
     tagsInput.value = props.todo.tags.join(', ')
+    projectRef.value = props.todo.projectId ?? ''
+    milestoneRef.value = props.todo.milestoneId ?? ''
+    showNewProject.value = false
+    chosenIcon.value = ICONS[0]
+    projectName.value = ''
+    showNewMilestone.value = false
+    milestoneName.value = ''
   },
 )
 
-const project = computed(() => projects.projects.find((p) => p.id === props.todo.projectId))
-const milestone = computed(() => projects.milestones.find((m) => m.id === props.todo.milestoneId))
+const selectedProjectId = computed(() => {
+  if (projectRef.value === '__new__') return undefined
+  return projectRef.value || undefined
+})
+
+const showMilestones = computed(() => !!selectedProjectId.value)
+
+const projectSelectOptions = computed(() => {
+  const opts: Array<{ value: string; label: string }> = [
+    { value: '', label: t('eisenhower.createTask.noProject') },
+    ...projects.sortedProjects.map((p) => ({ value: p.id, label: `${p.icon} ${p.name}` })),
+  ]
+  opts.push({ value: '__new__', label: t('eisenhower.createTask.newProject') })
+  return opts
+})
+
+const milestoneOptions = computed(() => {
+  if (!selectedProjectId.value) return []
+  const projectMilestones = projects.milestonesForProject(selectedProjectId.value)
+  const opts: Array<{ value: string; label: string }> = [
+    { value: '', label: t('eisenhower.createTask.noMilestone') },
+    ...projectMilestones.map((m) => ({ value: m.id, label: m.name })),
+  ]
+  opts.push({ value: '__new__', label: t('eisenhower.createTask.newMilestone') })
+  return opts
+})
 
 function commitTitle() {
   const trimmed = title.value.trim()
@@ -52,6 +95,54 @@ function commitTags() {
     .map((tag) => tag.trim())
     .filter(Boolean)
   todos.updateTodo(props.todo.id, { tags })
+}
+
+function onProjectSelect() {
+  if (projectRef.value === '__new__') {
+    showNewProject.value = true
+    showNewMilestone.value = false
+    return
+  }
+  const projectId = projectRef.value || undefined
+  if (projectId === props.todo.projectId) return
+  milestoneRef.value = ''
+  showNewMilestone.value = false
+  todos.updateTodo(props.todo.id, { projectId, milestoneId: undefined })
+}
+
+function onMilestoneSelect() {
+  if (milestoneRef.value === '__new__') {
+    showNewMilestone.value = true
+    return
+  }
+  const projectId = selectedProjectId.value
+  if (!projectId) return
+  const milestoneId = milestoneRef.value || undefined
+  if (milestoneId === props.todo.milestoneId && projectId === props.todo.projectId) return
+  todos.updateTodo(props.todo.id, { projectId, milestoneId })
+}
+
+function submitNewProject() {
+  const name = projectName.value.trim()
+  if (!name) return
+  const created = projects.addProject({ icon: chosenIcon.value, name, description: '', notes: '' })
+  showNewProject.value = false
+  projectName.value = ''
+  projectRef.value = created.id
+  milestoneRef.value = ''
+  showNewMilestone.value = false
+  todos.updateTodo(props.todo.id, { projectId: created.id, milestoneId: undefined })
+}
+
+function submitNewMilestone() {
+  const name = milestoneName.value.trim()
+  const projectId = selectedProjectId.value
+  if (!name || !projectId) return
+  const created = projects.addMilestone(projectId, name)
+  showNewMilestone.value = false
+  milestoneName.value = ''
+  milestoneRef.value = created.id
+  todos.updateTodo(props.todo.id, { projectId, milestoneId: created.id })
 }
 
 function remove() {
@@ -80,9 +171,57 @@ function remove() {
         @change="commitTitle"
       />
 
-      <div v-if="project" class="task-detail__project">
-        <span aria-hidden="true">{{ project.icon }}</span>
-        {{ project.name }}<template v-if="milestone"> · {{ milestone.name }}</template>
+      <div class="task-detail__select-group">
+        <div class="task-detail__select-label">{{ t('eisenhower.createTask.project') }}</div>
+        <div class="task-detail__select-wrapper">
+          <select v-model="projectRef" @change="onProjectSelect">
+            <option v-for="opt in projectSelectOptions" :key="opt.value || 'none'" :value="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+        <div v-if="projectRef === '__new__'" class="task-detail__inline-create">
+          <div class="task-detail__icons">
+            <button
+              v-for="icon in ICONS"
+              :key="icon"
+              type="button"
+              class="task-detail__icon"
+              :class="{ 'task-detail__icon--selected': chosenIcon === icon }"
+              @click="chosenIcon = icon"
+            >{{ icon }}</button>
+          </div>
+          <input
+            v-model="projectName"
+            type="text"
+            :placeholder="t('eisenhower.createTask.projectName')"
+            @keydown.enter.prevent="submitNewProject"
+          />
+          <button type="button" class="task-detail__inline-create-submit" @click="submitNewProject">
+            {{ t('eisenhower.createTask.save') }}
+          </button>
+        </div>
+      </div>
+
+      <div class="task-detail__select-group">
+        <div class="task-detail__select-label">{{ t('eisenhower.createTask.milestone') }}</div>
+        <template v-if="showMilestones">
+          <div class="task-detail__select-wrapper">
+            <select v-model="milestoneRef" @change="onMilestoneSelect">
+              <option v-for="opt in milestoneOptions" :key="opt.value || 'none'" :value="opt.value">{{ opt.label }}</option>
+            </select>
+          </div>
+          <div v-if="milestoneRef === '__new__'" class="task-detail__inline-create">
+            <input
+              v-model="milestoneName"
+              type="text"
+              :placeholder="t('eisenhower.createTask.milestoneName')"
+              @keydown.enter.prevent="submitNewMilestone"
+            />
+            <button type="button" class="task-detail__inline-create-submit" @click="submitNewMilestone">
+              {{ t('eisenhower.createTask.save') }}
+            </button>
+          </div>
+        </template>
+        <p v-else class="task-detail__hint">{{ t('eisenhower.createTask.pickerProjectHint') }}</p>
       </div>
 
       <div class="task-detail__row">
@@ -174,12 +313,15 @@ function remove() {
 
 .task-detail__title,
 .task-detail__row select,
-.task-detail__tags-label input {
+.task-detail__tags-label input,
+.task-detail__select-wrapper select,
+.task-detail__inline-create input {
   background-color: var(--color-surface);
   color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: 4px;
   padding: 0.4rem 0.6rem;
+  font-family: inherit;
 }
 
 .task-detail__title {
@@ -188,9 +330,68 @@ function remove() {
   font-weight: 600;
 }
 
-.task-detail__project {
+.task-detail__select-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.task-detail__select-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.task-detail__select-wrapper select {
+  width: 100%;
+  cursor: pointer;
+}
+
+.task-detail__inline-create {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-left: 0.5rem;
+}
+
+.task-detail__icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.task-detail__icon {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-surface-alt);
+  border: 2px solid transparent;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.task-detail__icon--selected {
+  border-color: var(--color-primary);
+}
+
+.task-detail__inline-create-submit {
+  align-self: flex-end;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  padding: 0.35rem 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.task-detail__hint {
+  margin: 0;
   font-size: 0.8rem;
   color: var(--color-text-muted);
+  padding-left: 0.5rem;
 }
 
 .task-detail__row {

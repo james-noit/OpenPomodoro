@@ -7,6 +7,7 @@ import { useClockStore } from '../stores/clock'
 import { useProjectsStore } from '../stores/projects'
 import ProjectsPanel from './ProjectsPanel.vue'
 import TaskProjectTag from './TaskProjectTag.vue'
+import TaskDetailModal from './TaskDetailModal.vue'
 import type { AccomplishmentMark, MultitaskCard } from '../types/multitask'
 import type { Priority } from '../types/todo'
 
@@ -24,6 +25,9 @@ const project = computed(() => (task.value ? projects.projects.find((p) => p.id 
 const milestone = computed(() => (task.value ? projects.milestones.find((m) => m.id === task.value!.milestoneId) : undefined))
 
 const taskModalOpen = ref(false)
+const showDetail = ref(false)
+const titleEditing = ref(false)
+const editTitle = ref('')
 const pickTab = ref<'all' | 'projects'>('all')
 const pickImportance = ref<Priority | 'all'>('all')
 const pickUrgency = ref<Priority | 'all'>('all')
@@ -126,6 +130,37 @@ function answerIteration(marks: AccomplishmentMark[]) {
   if (clock.lastFocusEndAt === null) return
   multitask.recordAccomplishment(props.card.id, marks, clock.lastFocusEndAt)
 }
+
+function startTitleEdit(e: Event) {
+  e.stopPropagation()
+  if (!task.value || strikeActive.value) return
+  editTitle.value = task.value.title
+  titleEditing.value = true
+  setTimeout(() => {
+    document.querySelector<HTMLInputElement>('.mt-row__title-input')?.select()
+  }, 0)
+}
+
+function cancelTitleEdit() {
+  titleEditing.value = false
+}
+
+function commitTitleEdit() {
+  const cur = task.value
+  if (cur) {
+    const trimmed = editTitle.value.trim()
+    if (trimmed && trimmed !== cur.title) {
+      todos.updateTodo(cur.id, { title: trimmed })
+    }
+  }
+  titleEditing.value = false
+}
+
+function openDetail(e: Event) {
+  e.stopPropagation()
+  if (!task.value || strikeActive.value || titleEditing.value) return
+  showDetail.value = true
+}
 </script>
 
 <template>
@@ -135,7 +170,7 @@ function answerIteration(marks: AccomplishmentMark[]) {
     :style="{ borderLeftColor: borderColor }"
   >
     <template v-if="task">
-      <div class="mt-row__main">
+      <div class="mt-row__main" @click="openDetail">
         <div class="mt-row__title-line">
           <TransitionGroup tag="span" name="mt-square" class="mt-row__squares">
             <button
@@ -144,10 +179,10 @@ function answerIteration(marks: AccomplishmentMark[]) {
               type="button"
               class="mt-row__square"
               :class="`mt-row__square--${mark}`"
-              @click="multitask.removeAccomplishment(card.id, index)"
+              @click.stop="multitask.removeAccomplishment(card.id, index)"
             ></button>
           </TransitionGroup>
-          <div class="mt-row__add-group">
+          <div class="mt-row__add-group" @click.stop>
             <button
               type="button"
               class="mt-row__add mt-row__add--green"
@@ -164,7 +199,22 @@ function answerIteration(marks: AccomplishmentMark[]) {
             >+</button>
           </div>
           <div class="mt-row__text">
-            <span class="mt-row__title" :class="{ 'mt-row__title--struck': strikeActive }">{{ task.title }}</span>
+            <span
+              v-if="!titleEditing"
+              class="mt-row__title"
+              :class="{ 'mt-row__title--struck': strikeActive }"
+              @click.stop="startTitleEdit"
+            >{{ task.title }}</span>
+            <input
+              v-else
+              v-model="editTitle"
+              type="text"
+              class="mt-row__title-input"
+              @click.stop
+              @keyup.enter="commitTitleEdit"
+              @keyup.esc="cancelTitleEdit"
+              @blur="commitTitleEdit"
+            />
             <div
               v-if="project"
               class="mt-row__project"
@@ -177,7 +227,7 @@ function answerIteration(marks: AccomplishmentMark[]) {
         </div>
       </div>
 
-      <div class="mt-row__actions">
+      <div class="mt-row__actions" @click.stop>
         <template v-if="showIterationCheck">
           <span class="mt-row__iteration-label">{{ t('multitask.iterationQuestionShort') }}</span>
           <button
@@ -313,6 +363,8 @@ function answerIteration(marks: AccomplishmentMark[]) {
         </div>
       </div>
     </div>
+
+    <TaskDetailModal v-if="showDetail && task" :todo="task" @close="showDetail = false" />
   </div>
 </template>
 
