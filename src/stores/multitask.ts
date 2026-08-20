@@ -56,6 +56,17 @@ export const useMultitaskStore = defineStore('multitask', () => {
     return ids
   })
 
+  // Effectivity aggregation across all currently-displayed cards.
+  const greenBoxes = computed(() =>
+    cards.value.reduce((sum, card) => sum + (card.accomplishments?.filter((m) => m === 'green').length ?? 0), 0),
+  )
+  const redBoxes = computed(() =>
+    cards.value.reduce((sum, card) => sum + (card.accomplishments?.filter((m) => m === 'red').length ?? 0), 0),
+  )
+  const totalBoxes = computed(() => greenBoxes.value + redBoxes.value)
+  // Fraction 0..1; null when there are no boxes at all (0/0 is undefined).
+  const efficiency = computed(() => (totalBoxes.value === 0 ? null : greenBoxes.value / totalBoxes.value))
+
   function addCard(taskId: string | null = null) {
     const id = createId()
     cards.value.push({ id, taskId, createdAt: Date.now(), accomplishments: [], lastAnsweredPhaseEndAt: null })
@@ -109,6 +120,13 @@ export const useMultitaskStore = defineStore('multitask', () => {
     card.accomplishments.splice(index, 1)
   }
 
+  function resetAccomplishments() {
+    for (const card of cards.value) {
+      if (!card.accomplishments) card.accomplishments = []
+      else card.accomplishments.splice(0, card.accomplishments.length)
+    }
+  }
+
   function setEnabled(val: boolean) {
     enabled.value = val
   }
@@ -137,6 +155,10 @@ export const useMultitaskStore = defineStore('multitask', () => {
     cards,
     capacityTipDismissed,
     assignedTaskIds,
+    greenBoxes,
+    redBoxes,
+    totalBoxes,
+    efficiency,
     addCard,
     removeCard,
     assignTask,
@@ -145,6 +167,7 @@ export const useMultitaskStore = defineStore('multitask', () => {
     recordAccomplishment,
     addAccomplishment,
     removeAccomplishment,
+    resetAccomplishments,
     cancelDissolve,
     scheduleDissolveIfEmpty,
     setEnabled,

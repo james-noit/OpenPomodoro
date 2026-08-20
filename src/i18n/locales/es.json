@@ -144,7 +144,13 @@
     "iterationHit": "Productiva",
     "iterationDoubleHit": "Muy productiva",
     "addAccomplishmentGreen": "Añadir una marca productiva",
-    "addAccomplishmentRed": "Añadir una marca no productiva"
+    "addAccomplishmentRed": "Añadir una marca no productiva",
+    "effectivityTitle": "Efectividad",
+    "effectivityGreen": "cajas verdes",
+    "effectivityRed": "cajas rojas",
+    "effectivityTooltip": "Efectividad = cajas verdes ÷ cajas totales (verdes + rojas).",
+    "restartCounter": "Reiniciar contador de efectividad",
+    "restartCounterConfirm": "¿Reiniciar todas las cajas de efectividad de todas las tareas?"
   },
   "eisenhower": {
     "title": "Matriz de Eisenhower",

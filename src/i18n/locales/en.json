@@ -144,7 +144,13 @@
     "iterationHit": "Profitable",
     "iterationDoubleHit": "Very profitable",
     "addAccomplishmentGreen": "Add a successful mark",
-    "addAccomplishmentRed": "Add a failed mark"
+    "addAccomplishmentRed": "Add a failed mark",
+    "effectivityTitle": "Effectivity",
+    "effectivityGreen": "green boxes",
+    "effectivityRed": "red boxes",
+    "effectivityTooltip": "Effectivity = green boxes ÷ total boxes (green + red).",
+    "restartCounter": "Restart effectivity counter",
+    "restartCounterConfirm": "Reset all effectivity squares across all tasks?"
   },
   "eisenhower": {
     "title": "Eisenhower Matrix",

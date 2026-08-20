@@ -7,6 +7,7 @@ import { useSettingsStore, MIN_DURATION_SECONDS, MAX_FOCUS_SECONDS, MAX_BREAK_SE
 import MultitaskTaskRow from './MultitaskTaskRow.vue'
 import MultitaskTaskDrawer from './MultitaskTaskDrawer.vue'
 import ClockSettings from './ClockSettings.vue'
+import EffectivityCard from './EffectivityCard.vue'
 
 const { t } = useI18n()
 const multitask = useMultitaskStore()
@@ -227,6 +228,7 @@ function onBannerLeave(el: Element, done: () => void) {
     </div>
 
     <div class="multitask-view__toolbar">
+      <EffectivityCard />
       <div class="multitask-view__toolbar-actions">
         <MultitaskTaskDrawer />
       </div>
