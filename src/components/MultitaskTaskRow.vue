@@ -381,6 +381,7 @@ function openDetail(e: Event) {
   border-left: 4px solid var(--color-border);
   border-radius: 8px;
   padding: 0.6rem 1rem;
+  overflow: hidden;
 }
 
 .mt-row--dissolving {
@@ -412,6 +413,8 @@ function openDetail(e: Event) {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .mt-row__text {
@@ -419,7 +422,7 @@ function openDetail(e: Event) {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.1rem;
-  flex: 1 1 auto;
+  flex: 0 1 0;
   min-width: 0;
 }
 

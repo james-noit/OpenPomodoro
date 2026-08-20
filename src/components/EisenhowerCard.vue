@@ -43,6 +43,8 @@ const todos = useTodosStore()
   background-color: var(--color-surface);
   cursor: pointer;
   transition: opacity 0.15s;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .eisenhower-card--dragging {
@@ -65,7 +67,10 @@ const todos = useTodosStore()
 }
 
 .eisenhower-card__title {
-  overflow-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
   font-size: 0.9rem;
 }
 
@@ -75,9 +80,6 @@ const todos = useTodosStore()
 
 .eisenhower-card--compact .eisenhower-card__title {
   font-size: 0.85rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .eisenhower-card--minimal {
@@ -87,8 +89,5 @@ const todos = useTodosStore()
 
 .eisenhower-card--minimal .eisenhower-card__title {
   font-size: 0.8rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>

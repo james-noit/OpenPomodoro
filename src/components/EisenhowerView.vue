@@ -308,7 +308,7 @@ function closeNewTask() {
 
 .eisenhower-view__grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-template-rows: 1fr 1fr;
   gap: 0.75rem;
   position: relative;
@@ -323,6 +323,7 @@ function closeNewTask() {
   border-radius: 8px;
   padding: 0.75rem;
   min-height: 160px;
+  min-width: 0;
   border-top: 4px solid var(--color-border);
 }
 
@@ -352,6 +353,7 @@ function closeNewTask() {
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.25rem;
+  flex-wrap: wrap;
 }
 
 .eisenhower-quadrant__add {
@@ -379,11 +381,17 @@ function closeNewTask() {
 .eisenhower-quadrant__header h3 {
   margin: 0;
   font-size: 0.95rem;
+  min-width: 0;
 }
 
 .eisenhower-quadrant__hint {
   font-size: 0.75rem;
   color: var(--color-text-muted);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .eisenhower-quadrant__list {
@@ -433,6 +441,28 @@ function closeNewTask() {
 
 .eisenhower-view__axis {
   display: none;
+}
+
+@media (max-width: 600px) {
+  .eisenhower-view {
+    padding: 0.75rem 0.5rem;
+    gap: 0.75rem;
+  }
+
+  .eisenhower-view__grid {
+    gap: 0.5rem;
+  }
+
+  .eisenhower-quadrant {
+    min-height: 0;
+    padding: 0.5rem;
+    gap: 0.35rem;
+  }
+
+  .eisenhower-quadrant__list,
+  .eisenhower-quadrant__groups {
+    gap: 0.25rem;
+  }
 }
 
 @media (min-width: 700px) {
