@@ -1,10 +1,18 @@
 import { defineStore } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useLocalStorage } from '../composables/useLocalStorage'
 import { useSettingsStore } from './settings'
 import type { BellSoundId } from './settings'
 
 export type ClockMode = 'focus' | 'break'
+
+interface ClockPersistShape {
+  mode: ClockMode
+  running: boolean
+  endAt: number | null
+  remainingSeconds: number
+}
 
 let audioCtx: AudioContext | null = null
 
@@ -67,6 +75,10 @@ export const useClockStore = defineStore('clock', () => {
   const running = ref(false)
   let intervalId: ReturnType<typeof setInterval> | undefined
   let hasTicked = false
+  // Wall-clock deadline for the current session (ms since epoch). Remaining time
+  // is always derived from this against Date.now(), so a throttled or hidden
+  // tab can never make the clock run slow.
+  let endAt: number | null = null
 
   const durationSeconds = computed(() =>
     mode.value === 'focus' ? settings.focusSeconds : settings.breakSeconds,
@@ -74,15 +86,29 @@ export const useClockStore = defineStore('clock', () => {
   const totalSeconds = computed(() => durationSeconds.value)
   const remainingSeconds = ref(totalSeconds.value)
 
+  // Persisted so the timer survives a page refresh. Written only on
+  // state transitions (start/pause/reset/switch), never on every tick.
+  const persist = useLocalStorage<ClockPersistShape>('openpomodoro.clock', {
+    mode: 'focus',
+    running: false,
+    endAt: null,
+    remainingSeconds: totalSeconds.value,
+  })
+
+  function persistState() {
+    persist.value = {
+      mode: mode.value,
+      running: running.value,
+      endAt,
+      remainingSeconds: remainingSeconds.value,
+    }
+  }
+
   function adjustDuration(deltaSeconds: number) {
     if (running.value) return
     if (mode.value === 'focus') settings.setFocusSeconds(settings.focusSeconds + deltaSeconds)
     else settings.setBreakSeconds(settings.breakSeconds + deltaSeconds)
   }
-
-  watch([mode, totalSeconds], () => {
-    if (!running.value) remainingSeconds.value = totalSeconds.value
-  })
 
   const sessionModalOpen = ref(false)
   const lastFocusEndAt = ref<number | null>(null)
@@ -100,8 +126,15 @@ export const useClockStore = defineStore('clock', () => {
     new Notification(t('clock.notificationTitle'), { body })
   }
 
+  function computedRemaining(): number {
+    if (endAt === null) return remainingSeconds.value
+    return Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
+  }
+
   function tick() {
-    if (remainingSeconds.value <= 0) {
+    if (endAt === null) return
+    const remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
+    if (remaining <= 0) {
       if (!hasTicked) {
         hasTicked = true
         pause()
@@ -111,34 +144,42 @@ export const useClockStore = defineStore('clock', () => {
       }
       return
     }
-    remainingSeconds.value -= 1
+    remainingSeconds.value = remaining
   }
 
   function switchToNextMode() {
     const wasFocus = mode.value === 'focus'
     mode.value = mode.value === 'focus' ? 'break' : 'focus'
     hasTicked = false
+    remainingSeconds.value = totalSeconds.value
     sessionModalOpen.value = true
     if (wasFocus) lastFocusEndAt.value = Date.now()
+    persistState()
   }
 
   function start() {
     if (running.value || remainingSeconds.value <= 0) return
     ensureNotificationPermission()
+    endAt = Date.now() + remainingSeconds.value * 1000
     running.value = true
-    intervalId = setInterval(tick, 1000)
+    intervalId = setInterval(tick, 250)
+    persistState()
   }
 
   function pause() {
+    if (running.value && endAt !== null) remainingSeconds.value = computedRemaining()
     running.value = false
     if (intervalId) clearInterval(intervalId)
     intervalId = undefined
+    endAt = null
+    persistState()
   }
 
   function reset() {
     hasTicked = false
     pause()
     remainingSeconds.value = totalSeconds.value
+    persistState()
   }
 
   function setMode(next: ClockMode) {
@@ -146,7 +187,46 @@ export const useClockStore = defineStore('clock', () => {
     pause()
     mode.value = next
     remainingSeconds.value = totalSeconds.value
+    persistState()
   }
+
+  // Keep the non-running remainder in sync when the configured duration or the
+  // active mode changes (the [mode, totalSeconds] watcher). Skipped while a
+  // session is running and while we are still restoring a persisted state, so a
+  // restored paused remainder is not clobbered.
+  let restoring = true
+  watch([mode, totalSeconds], () => {
+    if (!running.value && !restoring) {
+      remainingSeconds.value = totalSeconds.value
+      persistState()
+    }
+  })
+
+  function restorePersistedState() {
+    const stored = persist.value
+    mode.value = stored.mode
+    if (stored.running && stored.endAt !== null) {
+      if (stored.endAt > Date.now()) {
+        endAt = stored.endAt
+        remainingSeconds.value = Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
+        running.value = true
+        intervalId = setInterval(tick, 250)
+      } else {
+        // Session finished while the app was closed: prompt the next phase.
+        switchToNextMode()
+      }
+    } else {
+      remainingSeconds.value = stored.remainingSeconds
+    }
+  }
+
+  restorePersistedState()
+
+  // Release the restore guard after Vue has settled the initial watcher flush,
+  // so the [mode, totalSeconds] watcher does not overwrite the restored state.
+  void nextTick(() => {
+    restoring = false
+  })
 
   function startNextSession() {
     sessionModalOpen.value = false
